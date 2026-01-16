@@ -8,46 +8,16 @@ services:
     restart: unless-stopped
     ports:
       - "1236:4002"
-    environment:
-      APP_NAME: ${APP_NAME}
-      APP_ENV: ${APP_ENV}
-      APP_KEY: ${APP_KEY}
-      APP_DEBUG: ${APP_DEBUG}
-      APP_URL: ${APP_URL}
-
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${DB_DATABASE}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-
-      FILESYSTEM_DISK: minio_private
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
-      MINIO_BUCKET_PRIVATE: ${MINIO_BUCKET_PRIVATE}
-      MINIO_REGION: ${MINIO_REGION}
-      MINIO_USE_SSL: ${MINIO_USE_SSL}
-
-      PORT: 4002
-
-    volumes:
-      - ./:/var/www/html
+    env_file: [.env]
     depends_on:
       - mysql
       - redis
-    networks:
-      - app-network
-
+    networks: [app-network]
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
     command: >
       sh -c "
-      mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache &&
-      chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache &&
       php artisan serve --host=0.0.0.0 --port=4002
       "
 
@@ -57,6 +27,7 @@ services:
     restart: unless-stopped
     ports:
       - "1234:3306"
+    env_file: [.env]
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -65,22 +36,21 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
-    networks:
-      - app-network
+    networks: [app-network]
 
   redis:
     image: redis/redis-stack:latest
     container_name: inventory_redis
     restart: unless-stopped
     ports:
-      - "1235:8001" # RedisInsight GUI
+      - "1235:8001"
+    env_file: [.env]
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD}"
+    networks: [app-network]
     volumes:
       - redis_data:/data
       - redisinsight_data:/redisinsight
-    networks:
-      - app-network
 
 networks:
   app-network:
