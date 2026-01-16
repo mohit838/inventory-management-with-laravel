@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Repositories\UserSettingRepository;
-use App\Models\UserSetting;
+use App\Http\Requests\UserSettingUpdateRequest;
+use App\Http\Resources\UserSettingResource;
+use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "User Settings", description: "API Endpoints for User Settings")]
@@ -27,7 +28,7 @@ class UserSettingController extends Controller
     {
         $userId = $request->user() ? $request->user()->id : 0;
         $settings = $this->repo->getAllForUser($userId);
-        return response()->json(['data' => $settings]);
+        return UserSettingResource::collection($settings);
     }
 
     #[OA\Post(
@@ -49,16 +50,11 @@ class UserSettingController extends Controller
             new OA\Response(response: 200, description: "Setting updated")
         ]
     )]
-    public function update(Request $request)
+    public function update(UserSettingUpdateRequest $request)
     {
-        $data = $request->validate([
-            'key' => 'required|string|max:255',
-            'value' => 'nullable|string',
-        ]);
-
         $userId = $request->user() ? $request->user()->id : 0;
-        $setting = $this->repo->set($userId, $data['key'], $data['value']);
+        $setting = $this->repo->set($userId, $request->key, $request->value);
         
-        return response()->json(['data' => $setting]);
+        return new UserSettingResource($setting);
     }
 }

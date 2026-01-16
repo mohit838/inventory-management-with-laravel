@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Repositories\SubcategoryRepository;
 use App\Http\Resources\SubcategoryResource;
+use App\Http\Requests\SubcategoryStoreRequest;
+use App\Http\Requests\SubcategoryUpdateRequest;
 use App\Traits\PaginationTrait;
 use OpenApi\Attributes as OA;
 
@@ -66,16 +68,9 @@ class SubcategoryController extends Controller
             new OA\Response(response: 201, description: "Subcategory created")
         ]
     )]
-    public function store(Request $request)
+    public function store(SubcategoryStoreRequest $request)
     {
-        $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:subcategories,slug',
-            'active' => 'sometimes|boolean',
-        ]);
-        
-        $item = $this->repo->create($data);
+        $item = $this->repo->create($request->validated());
         return (new SubcategoryResource($item))->response()->setStatusCode(201);
     }
 
@@ -95,6 +90,20 @@ class SubcategoryController extends Controller
     {
         $item = $this->repo->findWithInactive((int)$id);
         return new SubcategoryResource($item);
+    }
+
+    #[OA\Get(
+        path: "/api/v1/subcategories/dropdown",
+        tags: ["Subcategories"],
+        summary: "Get subcategories for dropdown",
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(response: 200, description: "Successful operation")
+        ]
+    )]
+    public function dropdown()
+    {
+        return SubcategoryResource::collection($this->repo->all());
     }
 
     #[OA\Put(
@@ -120,16 +129,9 @@ class SubcategoryController extends Controller
             new OA\Response(response: 200, description: "Subcategory updated")
         ]
     )]
-    public function update(Request $request, $id)
+    public function update(SubcategoryUpdateRequest $request, $id)
     {
-        $data = $request->validate([
-            'category_id' => 'sometimes|exists:categories,id',
-            'name' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|max:255|unique:subcategories,slug,' . $id,
-            'active' => 'sometimes|boolean',
-        ]);
-
-        $item = $this->repo->update((int)$id, $data);
+        $item = $this->repo->update((int)$id, $request->validated());
         return new SubcategoryResource($item);
     }
 

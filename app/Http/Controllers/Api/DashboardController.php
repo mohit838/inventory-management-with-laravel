@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Interfaces\AnalyticsServiceInterface;
+use App\Http\Resources\DashboardSummaryResource;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Dashboard", description: "API Endpoints for Dashboard Analytics")]
@@ -27,9 +28,8 @@ class DashboardController extends Controller
         $user = $request->user();
         $canViewRevenue = $user ? $user->can('dashboard.view_revenue') : false;
         
-        return response()->json([
-            'data' => $this->analytics->getSummary($user ? $user->id : 0, $canViewRevenue)
-        ]);
+        $data = $this->analytics->getSummary($user ? $user->id : 0, $canViewRevenue);
+        return new DashboardSummaryResource($data);
     }
 
     #[OA\Get(
@@ -53,8 +53,8 @@ class DashboardController extends Controller
         }
 
         $period = $request->input('period', 'monthly');
-        return response()->json([
-            'data' => $this->analytics->getSalesChart($user->id, $period)
-        ]);
+        $data = $this->analytics->getSalesChart($user->id, $period);
+        
+        return response()->json(['data' => $data]);
     }
 }

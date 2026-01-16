@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000",
+            "url": "http://127.0.0.1:8000",
             "description": "API Server"
         }
     ],
@@ -1065,6 +1065,25 @@
                 "responses": {
                     "204": {
                         "description": "Subcategory deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/subcategories/dropdown": {
+            "get": {
+                "tags": [
+                    "Subcategories"
+                ],
+                "summary": "Get subcategories for dropdown",
+                "operationId": "52ee205f4f691ae8f46bfd9b58aa76d8",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
                     }
                 },
                 "security": [

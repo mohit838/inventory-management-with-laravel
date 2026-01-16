@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\User;
 use App\Services\JwtService;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Resources\UserResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Auth", description: "API Endpoints for Authentication")]
@@ -41,17 +43,8 @@ class AuthController extends Controller
             new OA\Response(response: 201, description: "User created")
         ]
     )]
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $v = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-        if ($v->fails()) {
-            return response()->json(['errors' => $v->errors()], 422);
-        }
-
         // Force role to user for public registration
         $user = User::create([
             'name' => $request->name,
@@ -61,7 +54,7 @@ class AuthController extends Controller
             'active' => true,
         ]);
 
-        return response()->json(['user' => $user], 201);
+        return (new UserResource($user))->response()->setStatusCode(201);
     }
 
     #[OA\Post(
@@ -82,16 +75,8 @@ class AuthController extends Controller
             new OA\Response(response: 200, description: "Successful login")
         ]
     )]
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $v = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-        if ($v->fails()) {
-            return response()->json(['errors' => $v->errors()], 422);
-        }
-
         $user = User::where('email', $request->email)->first();
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
@@ -109,7 +94,7 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => 900,
             'refresh_token' => $refresh->plain_token,
-            'user' => $user
+            'user' => new UserResource($user)
         ]);
     }
 
@@ -132,16 +117,13 @@ class AuthController extends Controller
     )]
     public function refresh(Request $request)
     {
-        $v = Validator::make($request->all(), [
+        $request->validate([
             'refresh_token' => 'required|string',
         ]);
-        if ($v->fails()) {
-            return response()->json(['errors' => $v->errors()], 422);
-        }
 
         $hash = hash('sha256', $request->refresh_token);
         $rt = \App\Models\RefreshToken::where('token', $hash)->where('revoked', false)->first();
-        if (! $rt || $rt->expires_at && $rt->expires_at->isPast()) {
+        if (! $rt || ($rt->expires_at && $rt->expires_at->isPast())) {
             return response()->json(['message' => 'Invalid refresh token'], 401);
         }
 

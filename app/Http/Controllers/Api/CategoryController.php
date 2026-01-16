@@ -101,7 +101,7 @@ class CategoryController extends Controller
     )]
     public function dropdown()
     {
-        return response()->json(['data' => $this->repo->all(['id', 'name'])]);
+        return CategoryResource::collection($this->repo->all(['id', 'name']));
     }
 
     #[OA\Put(

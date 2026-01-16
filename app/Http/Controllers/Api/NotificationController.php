@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Resources\NotificationResource;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: "Notifications", description: "API Endpoints for User Notifications")]
@@ -20,10 +21,8 @@ class NotificationController extends Controller
     )]
     public function index(Request $request)
     {
-        // Paginate User's Notifications
-        return response()->json([
-            'data' => $request->user()->notifications()->paginate(20)
-        ]);
+        $notifications = $request->user()->notifications()->paginate(20);
+        return NotificationResource::collection($notifications);
     }
 
     #[OA\Patch(
@@ -43,7 +42,7 @@ class NotificationController extends Controller
         $notification = $request->user()->notifications()->findOrFail($id);
         $notification->markAsRead();
         
-        return response()->json(['message' => 'Notification marked as read']);
+        return new NotificationResource($notification);
     }
 
     #[OA\Patch(

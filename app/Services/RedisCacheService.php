@@ -2,39 +2,26 @@
 
 namespace App\Services;
 
+use App\Interfaces\CacheServiceInterface;
 use Illuminate\Support\Facades\Cache;
+use Closure;
 
-class RedisCacheService
+class RedisCacheService implements CacheServiceInterface
 {
     /**
-     * Get an item from the cache, or store the default value.
-     *
-     * @param  string  $key
-     * @param  int  $ttlSeconds
-     * @param  \Closure  $callback
-     * @return mixed
+     * @inheritDoc
      */
-    public function remember(string $key, int $ttlSeconds, \Closure $callback)
+    public function remember(string $key, int $ttlSeconds, Closure $callback, $tags = [])
     {
+        if (!empty($tags) && config('cache.default') !== 'file' && config('cache.default') !== 'database') {
+            return Cache::tags($tags)->remember($key, $ttlSeconds, $callback);
+        }
+
         return Cache::remember($key, $ttlSeconds, $callback);
     }
 
     /**
-     * Init a cache tag instance (if supported by driver, otherwise fallback to standard).
-     *
-     * @param  array|string  $tags
-     * @return \Illuminate\Cache\TaggedCache|\Illuminate\Cache\Repository
-     */
-    public function tags($tags)
-    {
-        return Cache::tags($tags);
-    }
-
-    /**
-     * Remove an item from the cache.
-     *
-     * @param  string  $key
-     * @return bool
+     * @inheritDoc
      */
     public function forget(string $key): bool
     {
@@ -42,13 +29,20 @@ class RedisCacheService
     }
 
     /**
-     * Flush the cache for specific tags.
-     *
-     * @param  array|string  $tags
-     * @return void
+     * @inheritDoc
      */
-    public function flushTags($tags): void
+    public function invalidateTags($tags): void
     {
-        Cache::tags($tags)->flush();
+        if (!empty($tags) && config('cache.default') !== 'file' && config('cache.default') !== 'database') {
+            Cache::tags($tags)->flush();
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function flush(): void
+    {
+        Cache::flush();
     }
 }

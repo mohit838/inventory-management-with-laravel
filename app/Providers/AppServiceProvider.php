@@ -20,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Interfaces\AnalyticsServiceInterface::class,
             \App\Services\SqlAnalyticsService::class
         );
+
+        $this->app->singleton(
+            \App\Interfaces\CacheServiceInterface::class,
+            \App\Services\RedisCacheService::class
+        );
     }
 
     /**
