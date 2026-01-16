@@ -40,7 +40,8 @@ class ProductController extends Controller
         $data = $request->validated();
         
         if ($request->hasFile('image')) {
-            $url = $this->minio->uploadImage($request->file('image'));
+            $user = $request->user();
+            $url = $this->minio->uploadImage($request->file('image'), $user->id);
             $data['image_url'] = $url;
         }
 
@@ -60,7 +61,8 @@ class ProductController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
-            $url = $this->minio->uploadImage($request->file('image'));
+            $user = $request->user();
+            $url = $this->minio->uploadImage($request->file('image'), $user->id);
             $data['image_url'] = $url;
         }
 

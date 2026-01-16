@@ -60,7 +60,7 @@ return [
             'report' => false,
         ],
 
-        'minio' => [
+        'minio' => [ // Public Bucket (If needed for generic assets)
             'driver' => 's3',
             'endpoint' => env('MINIO_ENDPOINT'),
             'use_path_style_endpoint' => true,
@@ -70,6 +70,18 @@ return [
             'bucket' => env('MINIO_BUCKET_PUBLIC', 'public-assets'),
             'url' => env('MINIO_ENDPOINT') . '/' . env('MINIO_BUCKET_PUBLIC', 'public-assets'),
             'use_ssl' => env('MINIO_USE_SSL', false),
+        ],
+
+        'minio_private' => [ // Private Bucket for SaaS Users
+            'driver' => 's3',
+            'endpoint' => env('MINIO_ENDPOINT'),
+            'use_path_style_endpoint' => true,
+            'key' => env('MINIO_ACCESS_KEY'),
+            'secret' => env('MINIO_SECRET_KEY'),
+            'region' => env('MINIO_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET_PRIVATE', 'private-assets'),
+            'use_ssl' => env('MINIO_USE_SSL', false),
+            'visibility' => 'private',
         ],
 
     ],

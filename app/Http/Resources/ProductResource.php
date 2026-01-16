@@ -15,7 +15,7 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'sku' => $this->sku,
             'description' => $this->description,
-            'image_url' => $this->image_url,
+            'image_url' => $this->image_url ? \Illuminate\Support\Facades\Storage::disk('minio_private')->temporaryUrl($this->image_url, now()->addMinutes(60)) : null,
             'price' => (float) $this->price,
             'quantity' => (int) $this->quantity,
             'active' => (bool) $this->active,

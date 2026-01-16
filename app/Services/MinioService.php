@@ -11,9 +11,9 @@ use Exception;
 
 class MinioService
 {
-    protected string $disk = 'minio';
+    protected string $disk = 'minio_private';
 
-    public function uploadImage(UploadedFile $file, string $path = 'products', int $quality = 75, int $maxRetry = 3): ?string
+    public function uploadImage(UploadedFile $file, int $userId, string $path = 'products', int $quality = 75, int $maxRetry = 3): ?string
     {
         $attempt = 0;
         $manager = new ImageManager(new Driver());
@@ -22,35 +22,31 @@ class MinioService
             $attempt++;
             try {
                 // 1. Compress Image
-                // We'll convert to WebP/JPG and resize if too big (optional, but good for SaaS)
-                // For now, simple encoding/compression.
                 $image = $manager->read($file->getRealPath());
                 $image->scale(width: 1920); // Max width 1920
                 $encoded = $image->toWebp(quality: $quality);
 
-                // 2. Generate Filename
-                $filename = $path . '/' . uniqid() . '.webp';
+                // 2. Generate Filename (Relative Path)
+                // format: tenants/{userId}/{path}/{uuid}.webp
+                $filename = "tenants/{$userId}/{$path}/" . uniqid() . '.webp';
 
-                // 3. Upload to MinIO
+                // 3. Upload to MinIO Private Disk
                 Storage::disk($this->disk)->put($filename, (string)$encoded);
 
-                // 4. Return URL
-                return Storage::disk($this->disk)->url($filename);
+                // 4. Return Relative Path (Not URL)
+                return $filename;
 
             } catch (Exception $e) {
                 Log::error("MinIO Upload Failed (Attempt $attempt): " . $e->getMessage());
                 
                 if ($attempt >= $maxRetry) {
-                     // In a real generic class, we might throw or return null. 
-                     // User said: "show message upload failed, try again or later".
-                     // We can throw generic exception catchable by Controller.
-                     throw new Exception("Upload failed after $maxRetry attempts. Please try again later. Error: " . $e->getMessage());
+                     throw new Exception("Upload failed after $maxRetry attempts. Please try again later.");
                 }
                 
-                sleep(1); // Backoff slightly
+                sleep(1); 
             }
         } while ($attempt < $maxRetry);
 
-        return null; // Should be unreachable due to throw above
+        return null; 
     }
 }

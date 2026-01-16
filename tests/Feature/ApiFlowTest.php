@@ -190,7 +190,7 @@ class ApiFlowTest extends TestCase
 
     public function test_product_image_upload()
     {
-        Storage::fake('minio');
+        Storage::fake('minio_private');
         
         $user = User::factory()->create(['role' => 'admin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
@@ -212,13 +212,12 @@ class ApiFlowTest extends TestCase
         $response->assertStatus(201);
         $response->assertJsonStructure(['data' => ['image_url']]);
         
-        // Cannot assert file exists because MinioService compresses and changes name.
-        // But we can check if *any* file was stored in minio disk.
-        // Storage::disk('minio')->assertExists(...) - key is unknown (uniqid).
-        // But we can trust it worked if response has URL and no exception.
-        // And we mocked Storage so it won't hit real MinIO.
+        // Assert the URL is a Signed URL (or at least looks like a URL)
+        // Since we use Storage::fake(), temporaryUrl might return "http://localhost/storage/..." or similar,
+        // typically generic if not fully configured.
+        // But we can check that a file exists in the correct private path: tenants/{id}/products/...
         
-        // Assert some file exists in the directory
-        // $this->assertTrue(count(Storage::disk('minio')->allFiles('products')) > 0);
+        $files = Storage::disk('minio_private')->allFiles("tenants/{$user->id}/products");
+        $this->assertGreaterThan(0, count($files));
     }
 }
