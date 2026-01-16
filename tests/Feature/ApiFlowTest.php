@@ -23,8 +23,14 @@ class ApiFlowTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'role' => 'superadmin' // Use superadmin to bypass RBAC for flow testing
         ]);
         $response->assertStatus(201);
+        
+        // 1.5. Upgrade user to Superadmin for flow testing (since public register = restricted user)
+        $user = User::where('email', 'test@example.com')->first();
+        $user->role = 'superadmin';
+        $user->save();
         
         // 2. Login
         $loginResponse = $this->postJson('/api/v1/login', [
@@ -33,8 +39,9 @@ class ApiFlowTest extends TestCase
         ]);
         $loginResponse->assertStatus(200)
             ->assertJsonStructure(['access_token', 'refresh_token', 'user']);
-            
         $token = $loginResponse->json('access_token');
+        $this->assertNotNull($token);
+            
         $refreshToken = $loginResponse->json('refresh_token');
 
         // 3. Access Protected Route (Categories)
@@ -57,7 +64,7 @@ class ApiFlowTest extends TestCase
 
     public function test_category_crud_and_active_scope()
     {
-        $user = User::factory()->create(['role' => 'admin', 'active' => true]);
+        $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $token = auth()->login($user); // Wait, we use JWT. Need to generate token manually or just mock middleware?
         // Better to use real login or JwtService.
         // Let's rely on actingAs if pure Laravel auth, but we have custom JwtMiddleware.
@@ -117,7 +124,7 @@ class ApiFlowTest extends TestCase
 
     public function test_pagination_and_search()
     {
-        $user = User::factory()->create(['role' => 'admin', 'active' => true]);
+        $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
         $headers = ['Authorization' => 'Bearer ' . $token];
@@ -142,7 +149,7 @@ class ApiFlowTest extends TestCase
 
     public function test_dropdowns()
     {
-        $user = User::factory()->create(['role' => 'user', 'active' => true]);
+        $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
         $headers = ['Authorization' => 'Bearer ' . $token];
@@ -158,7 +165,7 @@ class ApiFlowTest extends TestCase
 
     public function test_product_with_null_subcategory_and_settings()
     {
-        $user = User::factory()->create(['role' => 'admin', 'active' => true]);
+        $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
         $headers = ['Authorization' => 'Bearer ' . $token];
@@ -192,7 +199,7 @@ class ApiFlowTest extends TestCase
     {
         Storage::fake('minio_private');
         
-        $user = User::factory()->create(['role' => 'admin', 'active' => true]);
+        $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
         $headers = ['Authorization' => 'Bearer ' . $token];

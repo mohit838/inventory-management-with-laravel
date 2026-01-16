@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\ActiveScope;
+    use HasFactory, Notifiable, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\ActiveScope, \App\Traits\HasPermissions;
 
     const ROLE_SUPERADMIN = 'superadmin';
     const ROLE_ADMIN = 'admin';
