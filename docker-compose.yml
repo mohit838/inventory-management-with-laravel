@@ -1,9 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ${APP_IMAGE:-inventory-service:latest}
+    image: ${APP_IMAGE}
     container_name: inventory_app
     restart: unless-stopped
     ports:
