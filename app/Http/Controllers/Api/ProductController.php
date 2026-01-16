@@ -12,7 +12,7 @@ use App\Http\Resources\ProductResource;
 
 class ProductController extends Controller
 {
-    public function __construct(protected ProductRepository $repo)
+    public function __construct(protected ProductRepository $repo, protected \App\Services\MinioService $minio)
     {}
 
     public function index(Request $request)
@@ -26,7 +26,7 @@ class ProductController extends Controller
              $items = $this->repo->paginate($perPage, ['*'], ['category', 'subcategory']);
         }
 
-        return response()->json(ProductResource::collection($items));
+        return ProductResource::collection($items);
     }
 
     public function dropdown()
@@ -37,28 +37,42 @@ class ProductController extends Controller
 
     public function store(ProductStoreRequest $request)
     {
-        $dto = \App\DTO\ProductData::fromArray($request->validated());
+        $data = $request->validated();
+        
+        if ($request->hasFile('image')) {
+            $url = $this->minio->uploadImage($request->file('image'));
+            $data['image_url'] = $url;
+        }
+
+        $dto = \App\DTO\ProductData::fromArray($data);
         $item = $this->repo->create($dto->toArray());
-        return response()->json(new ProductResource($item), 201);
+        return (new ProductResource($item))->response()->setStatusCode(201);
     }
 
     public function show($id)
     {
-        $item = $this->repo->find((int)$id, ['category', 'subcategory']);
-        return response()->json(new ProductResource($item));
+        $item = $this->repo->findWithInactive((int)$id);
+        return new ProductResource($item);
     }
 
     public function update(ProductUpdateRequest $request, $id)
     {
-        $dto = \App\DTO\ProductData::fromArray($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $url = $this->minio->uploadImage($request->file('image'));
+            $data['image_url'] = $url;
+        }
+
+        $dto = \App\DTO\ProductData::fromArray($data);
         $item = $this->repo->update((int)$id, $dto->toArray());
-        return response()->json(new ProductResource($item));
+        return new ProductResource($item);
     }
 
     public function toggleActive(Request $request, $id)
     {
         $item = $this->repo->toggleActive((int)$id);
-        return response()->json(new ProductResource($item));
+        return new ProductResource($item);
     }
 
     public function destroy($id)

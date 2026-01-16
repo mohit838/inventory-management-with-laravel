@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('name');
             $table->string('sku')->unique();
             $table->text('description')->nullable();
+            $table->string('image_url')->nullable();
             $table->decimal('price', 12, 2)->default(0);
             $table->integer('quantity')->default(0);
             $table->boolean('active')->default(true);

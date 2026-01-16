@@ -12,7 +12,8 @@ class ProductData
         public ?string $description = null,
         public float $price = 0.0,
         public int $quantity = 0,
-        public bool $active = true
+        public bool $active = true,
+        public ?string $image_url = null
     ) {}
 
     public static function fromArray(array $data): self
@@ -25,7 +26,8 @@ class ProductData
             $data['description'] ?? null,
             isset($data['price']) ? (float)$data['price'] : 0.0,
             isset($data['quantity']) ? (int)$data['quantity'] : 0,
-            isset($data['active']) ? (bool)$data['active'] : true
+            isset($data['active']) ? (bool)$data['active'] : true,
+            $data['image_url'] ?? null
         );
     }
 

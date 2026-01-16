@@ -23,7 +23,7 @@ class SubcategoryController extends Controller
             $items = $this->repo->paginate($perPage, ['*'], ['category']);
         }
         
-        return response()->json(\App\Http\Resources\SubcategoryResource::collection($items));
+        return \App\Http\Resources\SubcategoryResource::collection($items);
     }
 
     public function dropdown()
@@ -43,33 +43,33 @@ class SubcategoryController extends Controller
         
         $dto = \App\DTO\SubcategoryData::fromArray($data);
         $item = $this->repo->create($dto->toArray());
-        return response()->json(new \App\Http\Resources\SubcategoryResource($item), 201);
+        return (new \App\Http\Resources\SubcategoryResource($item))->response()->setStatusCode(201);
     }
 
     public function show($id)
     {
-        $item = $this->repo->find((int)$id, ['category']);
-        return response()->json(new \App\Http\Resources\SubcategoryResource($item));
+        $item = $this->repo->findWithInactive((int)$id);
+        return new \App\Http\Resources\SubcategoryResource($item);
     }
 
     public function update(Request $request, $id)
     {
         $data = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:subcategories,slug,' . $id,
+            'category_id' => 'sometimes|exists:categories,id',
+            'name' => 'sometimes|string|max:255',
+            'slug' => 'sometimes|string|max:255|unique:subcategories,slug,' . $id,
             'active' => 'sometimes|boolean',
         ]);
 
         $dto = \App\DTO\SubcategoryData::fromArray($data);
         $item = $this->repo->update((int)$id, $dto->toArray());
-        return response()->json(new \App\Http\Resources\SubcategoryResource($item));
+        return new \App\Http\Resources\SubcategoryResource($item);
     }
 
     public function toggleActive(Request $request, $id)
     {
         $item = $this->repo->toggleActive((int)$id);
-        return response()->json(new \App\Http\Resources\SubcategoryResource($item));
+        return new \App\Http\Resources\SubcategoryResource($item);
     }
 
     public function destroy($id)
