@@ -13,12 +13,12 @@ class JwtMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $header = $request->header('Authorization');
-        if (! $header || ! str_starts_with($header, 'Bearer ')) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+        $authHeader = $request->header('Authorization', '');
+        if (!$authHeader || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+            return response()->json(['message' => 'Unauthorized. Bearer token missing.'], 401);
         }
 
-        $token = substr($header, 7);
+        $token = $matches[1];
 
         try {
             $secret = config('app.key');

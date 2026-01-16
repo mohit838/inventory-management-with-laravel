@@ -10,7 +10,9 @@ use App\Services\JwtService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use OpenApi\Attributes as OA;
 
+#[OA\Tag(name: "Auth", description: "API Endpoints for Authentication")]
 class AuthController extends Controller
 {
     protected JwtService $jwt;
@@ -20,6 +22,26 @@ class AuthController extends Controller
         $this->jwt = $jwt;
     }
 
+    #[OA\Post(
+        path: "/api/v1/register",
+        tags: ["Auth"],
+        summary: "Register a new user",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["name", "email", "password", "password_confirmation"],
+                properties: [
+                    new OA\Property(property: "name", type: "string"),
+                    new OA\Property(property: "email", type: "string", format: "email"),
+                    new OA\Property(property: "password", type: "string", format: "password"),
+                    new OA\Property(property: "password_confirmation", type: "string", format: "password")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "User created")
+        ]
+    )]
     public function register(Request $request)
     {
         $v = Validator::make($request->all(), [
@@ -45,6 +67,24 @@ class AuthController extends Controller
         return response()->json(['user' => $user], 201);
     }
 
+    #[OA\Post(
+        path: "/api/v1/login",
+        tags: ["Auth"],
+        summary: "User login",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["email", "password"],
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email"),
+                    new OA\Property(property: "password", type: "string", format: "password")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Successful login")
+        ]
+    )]
     public function login(Request $request)
     {
         $dto = LoginData::fromRequest($request);
@@ -78,6 +118,23 @@ class AuthController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: "/api/v1/refresh",
+        tags: ["Auth"],
+        summary: "Refresh access token",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["refresh_token"],
+                properties: [
+                    new OA\Property(property: "refresh_token", type: "string")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Token refreshed")
+        ]
+    )]
     public function refresh(Request $request)
     {
         $v = Validator::make($request->all(), [
@@ -102,6 +159,23 @@ class AuthController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: "/api/v1/logout",
+        tags: ["Auth"],
+        summary: "Logout user",
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "refresh_token", type: "string")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Logged out")
+        ]
+    )]
     public function logout(Request $request)
     {
         $refresh = $request->input('refresh_token');

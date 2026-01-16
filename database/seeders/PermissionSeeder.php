@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class PermissionSeeder extends Seeder
 {
@@ -12,33 +13,26 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         $permissions = [
-            // Categories
-            ['name' => 'View Categories', 'slug' => 'categories.view', 'group' => 'categories'],
-            ['name' => 'Create Categories', 'slug' => 'categories.create', 'group' => 'categories'],
-            ['name' => 'Edit Categories', 'slug' => 'categories.edit', 'group' => 'categories'],
-            ['name' => 'Delete Categories', 'slug' => 'categories.delete', 'group' => 'categories'],
-
-            // Products
-            ['name' => 'View Products', 'slug' => 'products.view', 'group' => 'products'],
-            ['name' => 'Create Products', 'slug' => 'products.create', 'group' => 'products'],
-            ['name' => 'Edit Products', 'slug' => 'products.edit', 'group' => 'products'],
-            ['name' => 'Delete Products', 'slug' => 'products.delete', 'group' => 'products'],
-
-            // Settings
-            ['name' => 'Manage Settings', 'slug' => 'settings.manage', 'group' => 'settings'],
-
-             // Orders
-            ['name' => 'View Orders', 'slug' => 'orders.view', 'group' => 'orders'],
-            ['name' => 'Create Orders', 'slug' => 'orders.create', 'group' => 'orders'],
-
-            // Dashboard
-            ['name' => 'View Dashboard', 'slug' => 'dashboard.view', 'group' => 'dashboard'],
-            ['name' => 'View Revenue', 'slug' => 'dashboard.view_revenue', 'group' => 'dashboard'],
+            'categories.view', 'categories.create', 'categories.edit', 'categories.delete',
+            'products.view', 'products.create', 'products.edit', 'products.delete',
+            'settings.manage',
+            'orders.view', 'orders.create',
+            'dashboard.view', 'dashboard.view_revenue',
         ];
 
-        foreach ($permissions as $perm) {
-            \App\Models\Permission::firstOrCreate(['slug' => $perm['slug']], $perm);
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
         }
+
+        // Create Roles and assign permissions
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $adminRole->givePermissionTo(Permission::all());
+
+        $userRole = Role::firstOrCreate(['name' => 'user']);
+        $userRole->givePermissionTo(['categories.view', 'products.view', 'orders.view']);
     }
 }
