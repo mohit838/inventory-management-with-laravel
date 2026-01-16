@@ -17,22 +17,40 @@ class PermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = [
+            // Category permissions
             'categories.view', 'categories.create', 'categories.edit', 'categories.delete',
+            // Product permissions
             'products.view', 'products.create', 'products.edit', 'products.delete',
-            'settings.manage',
+            // Order permissions
             'orders.view', 'orders.create',
+            // Dashboard permissions
             'dashboard.view', 'dashboard.view_revenue',
+            // Settings & User Management
+            'settings.manage',
+            'users.manage',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
 
-        // Create Roles and assign permissions
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        // 1. Super Admin - Has everything
+        $superAdminRole = Role::firstOrCreate(['name' => 'superadmin']);
+        $superAdminRole->syncPermissions(Permission::all());
 
+        // 2. Admin - Has everything except user management
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $adminRole->syncPermissions(Permission::all());
+        $adminRole->revokePermissionTo('users.manage');
+
+        // 3. User - View only + Create Orders
         $userRole = Role::firstOrCreate(['name' => 'user']);
-        $userRole->givePermissionTo(['categories.view', 'products.view', 'orders.view']);
+        $userRole->syncPermissions([
+            'categories.view', 
+            'products.view', 
+            'orders.view', 
+            'orders.create',
+            'dashboard.view'
+        ]);
     }
 }

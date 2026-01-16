@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Interfaces\AnalyticsServiceInterface;
-use App\DTO\DashboardSummaryData;
-use App\DTO\SalesChartData;
 use App\Models\Product;
 use App\Models\Order;
 use App\Enums\OrderStatus;
@@ -15,7 +13,7 @@ use Carbon\Carbon;
 
 class SqlAnalyticsService implements AnalyticsServiceInterface
 {
-    public function getSummary(int $userId, bool $includeRevenue = true): DashboardSummaryData
+    public function getSummary(int $userId, bool $includeRevenue = true): array
     {
         // Cache Key depends on includeRevenue
         $cacheKey = "dashboard_summary_{$userId}_" . ($includeRevenue ? 'rev' : 'norev');
@@ -47,18 +45,18 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
             
             $pendingOrders = Order::where('status', OrderStatus::PENDING)->count();
 
-            return new DashboardSummaryData(
-                total_products: $totalProducts,
-                low_stock_count: $lowStock,
-                out_of_stock_count: $outStock,
-                total_orders: $totalOrders,
-                total_revenue: $totalRevenue ? (float) $totalRevenue : null,
-                pending_orders_count: $pendingOrders
-            );
+            return [
+                'total_products' => $totalProducts,
+                'low_stock_count' => $lowStock,
+                'out_of_stock_count' => $outStock,
+                'total_orders' => $totalOrders,
+                'total_revenue' => $totalRevenue ? (float) $totalRevenue : null,
+                'pending_orders_count' => $pendingOrders
+            ];
         });
     }
 
-    public function getSalesChart(int $userId, string $period = 'monthly'): SalesChartData
+    public function getSalesChart(int $userId, string $period = 'monthly'): array
     {
         // Cache for 10 minutes
         return Cache::remember("sales_chart_{$userId}_{$period}", 600, function () use ($period) {
@@ -69,12 +67,6 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
             if ($period === 'monthly') {
                 $start = Carbon::now()->startOfYear();
                 $query->where('created_at', '>=', $start);
-                
-                // Group by Month
-                // MySQL specific or generic?
-                // Let's use generic Collection grouping implementation for portability or portable SQL.
-                // SQLite/MySQL diff in date format. 
-                // Using Collection approach is safer regarding SQL driver differences for this project.
                 
                 $orders = $query->get(['total_amount', 'created_at']);
                 
@@ -92,11 +84,17 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
                     $values[] = isset($grouped[$month]) ? $grouped[$month]->sum('total_amount') : 0;
                 }
                 
-                return new SalesChartData($labels, $values);
+                return [
+                    'labels' => $labels,
+                    'data' => $values
+                ];
             }
             
             // Default empty
-            return new SalesChartData([], []);
+            return [
+                'labels' => [],
+                'data' => []
+            ];
         });
     }
 }

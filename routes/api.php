@@ -6,6 +6,10 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\SubcategoryController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserSettingController;
+use App\Http\Controllers\Api\PublicUploadController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\NotificationController;
 
 Route::prefix('v1')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
@@ -42,22 +46,22 @@ Route::prefix('v1')->group(function () {
         Route::delete('products/{product}', [ProductController::class, 'destroy'])->middleware('permission:products.delete');
         Route::post('products/{product}/toggle-active', [ProductController::class, 'toggleActive'])->middleware('permission:products.edit');
         
-        Route::post('/uploads/public', [\App\Http\Controllers\Api\PublicUploadController::class, 'store']); // Public? Or restrict? User asked for public bucket but authenticated upload. Let's keep it just Auth for now, maybe 'permission:products.create' if it's for products.
+        Route::post('/uploads/public', [PublicUploadController::class, 'store']);
         
         Route::get('settings', [UserSettingController::class, 'index'])->middleware('permission:settings.manage');
         Route::post('settings', [UserSettingController::class, 'update'])->middleware('permission:settings.manage');
         
         // Orders
-        Route::post('orders', [\App\Http\Controllers\Api\OrderController::class, 'store'])->middleware('permission:orders.create');
-        Route::get('orders/{id}/invoice', [\App\Http\Controllers\Api\OrderController::class, 'invoice'])->middleware('permission:orders.view');
+        Route::post('orders', [OrderController::class, 'store'])->middleware('permission:orders.create');
+        Route::get('orders/{id}/invoice', [OrderController::class, 'invoice'])->middleware('permission:orders.view');
         
         // Dashboard
-        Route::get('dashboard/summary', [\App\Http\Controllers\Api\DashboardController::class, 'summary'])->middleware('permission:dashboard.view');
-        Route::get('dashboard/chart', [\App\Http\Controllers\Api\DashboardController::class, 'chart'])->middleware('permission:dashboard.view');
+        Route::get('dashboard/summary', [DashboardController::class, 'summary'])->middleware('permission:dashboard.view');
+        Route::get('dashboard/chart', [DashboardController::class, 'chart'])->middleware('permission:dashboard.view');
         
         // Notifications
-        Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
-        Route::patch('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
-        Route::patch('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     });
 });

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\DTO\LoginData;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -53,13 +52,11 @@ class AuthController extends Controller
             return response()->json(['errors' => $v->errors()], 422);
         }
 
-        $dto = \App\DTO\RegisterData::fromRequest($request);
-
         // Force role to user for public registration
         $user = User::create([
-            'name' => $dto->name,
-            'email' => $dto->email,
-            'password' => Hash::make($dto->password),
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
             'role' => User::ROLE_USER,
             'active' => true,
         ]);
@@ -87,8 +84,6 @@ class AuthController extends Controller
     )]
     public function login(Request $request)
     {
-        $dto = LoginData::fromRequest($request);
-
         $v = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string',
@@ -97,8 +92,8 @@ class AuthController extends Controller
             return response()->json(['errors' => $v->errors()], 422);
         }
 
-        $user = User::where('email', $dto->email)->first();
-        if (! $user || ! Hash::check($dto->password, $user->password)) {
+        $user = User::where('email', $request->email)->first();
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 

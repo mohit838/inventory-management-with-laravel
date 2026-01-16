@@ -28,8 +28,9 @@ The database seeder creates two default users for testing different RBAC permiss
 
 | Role | Email | Password | Permissions |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@test.com` | `password` | Full Access (Create, View, Edit, Delete) |
-| **User** | `user@test.com` | `password` | Balanced Access (View Categories/Products, Create Orders) |
+| **Superadmin** | `superadmin@test.com` | `password` | Total Control (All permissions + Users) |
+| **Admin** | `admin@test.com` | `password` | High Level Access (All except Users Management) |
+| **User** | `user@test.com` | `password` | Restricted Access (View Categories/Products, Create Orders) |
 
 ---
 
