@@ -50,5 +50,9 @@ Route::prefix('v1')->group(function () {
         // Orders
         Route::post('orders', [\App\Http\Controllers\Api\OrderController::class, 'store'])->middleware('permission:orders.create');
         Route::get('orders/{id}/invoice', [\App\Http\Controllers\Api\OrderController::class, 'invoice'])->middleware('permission:orders.view');
+        
+        // Dashboard
+        Route::get('dashboard/summary', [\App\Http\Controllers\Api\DashboardController::class, 'summary'])->middleware('permission:dashboard.view');
+        Route::get('dashboard/chart', [\App\Http\Controllers\Api\DashboardController::class, 'chart'])->middleware('permission:dashboard.view');
     });
 });

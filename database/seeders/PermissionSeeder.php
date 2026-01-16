@@ -31,6 +31,10 @@ class PermissionSeeder extends Seeder
              // Orders
             ['name' => 'View Orders', 'slug' => 'orders.view', 'group' => 'orders'],
             ['name' => 'Create Orders', 'slug' => 'orders.create', 'group' => 'orders'],
+
+            // Dashboard
+            ['name' => 'View Dashboard', 'slug' => 'dashboard.view', 'group' => 'dashboard'],
+            ['name' => 'View Revenue', 'slug' => 'dashboard.view_revenue', 'group' => 'dashboard'],
         ];
 
         foreach ($permissions as $perm) {
