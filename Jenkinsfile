@@ -86,15 +86,19 @@ pipeline {
       steps {
         sh '''
           echo "Deploying commit ${GIT_COMMIT_SHORT}"
-
-          # Tell docker-compose which image to run for app service
           export APP_IMAGE=${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}
 
           docker compose -f docker-compose.yml up -d
+
+          echo "Running migrations + seed..."
+          docker exec inventory_app php artisan migrate --force
+          docker exec inventory_app php artisan db:seed --force
+
           docker ps
         '''
       }
-    }
+  }
+
   }
 
   post {
