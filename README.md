@@ -15,7 +15,7 @@ This application serves as the **core Inventory module** in a microservices arch
 -   **SaaS Storage**: Secure, tenant-isolated file storage using **MinIO (S3-compatible)**
 -   **Authentication**: Stateless **JWT** authentication with **RBAC**
 -   **Performance**: High-performance caching (**Redis**) and standardized API responses
--   **Developer Experience**: Make commands, API docs, and comprehensive tests
+-   **Developer Experience**: Make commands, API docs (Swagger), and comprehensive tests
 
 ---
 
@@ -94,7 +94,7 @@ Search + pagination are built into the **Repository layer**.
 ### Developer Experience
 
 -   Helpful `make` commands (optional)
--   API Documentation via **Scramble**: `/docs/api`
+-   API Documentation via **L5-Swagger**: `/api/documentation`
 -   Comprehensive Feature Tests: `ApiFlowTest`
 
 ---
@@ -105,7 +105,7 @@ Search + pagination are built into the **Repository layer**.
 -   **Database**: MySQL 8.0
 -   **Cache**: Redis 7.0
 -   **Storage**: MinIO (S3 Compatible)
--   **Docs**: Scramble / OpenAPI
+-   **Docs**: L5-Swagger / OpenAPI
 
 ---
 
@@ -263,9 +263,9 @@ php artisan test
 
 ## 📚 API Documentation
 
-If Scramble is enabled:
+To view API documentation:
 
--   Open: `/docs/api`
+-   Open: `/api/documentation`
 
 ---
 
