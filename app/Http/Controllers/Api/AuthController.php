@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\DTO\LoginData;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Services\JwtService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
@@ -30,7 +32,7 @@ class AuthController extends Controller
         }
 
         $dto = \App\DTO\RegisterData::fromRequest($request);
-        
+
         // Force role to user for public registration
         $user = User::create([
             'name' => $dto->name,
@@ -45,7 +47,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $dto = \App\DTO\LoginData::fromRequest($request);
+        $dto = LoginData::fromRequest($request);
 
         $v = Validator::make($request->all(), [
             'email' => 'required|email',
@@ -61,7 +63,7 @@ class AuthController extends Controller
         }
 
         if (! $user->active) {
-             return response()->json(['message' => 'Account is inactive'], 403);
+            return response()->json(['message' => 'Account is inactive'], 403);
         }
 
         $access = $this->jwt->generateAccessToken($user->id, ['role' => $user->role]);
@@ -106,7 +108,7 @@ class AuthController extends Controller
         if ($refresh) {
             $this->jwt->revokeRefreshTokenByPlain($refresh);
         }
-        auth()->logout();
+        Auth::logout();
         return response()->json(['message' => 'Logged out']);
     }
 }
