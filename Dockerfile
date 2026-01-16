@@ -1,37 +1,57 @@
-FROM php:8.2-fpm
+# ---------- Base Image ----------
+FROM php:8.3-fpm-alpine
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    git curl bash \
-    libpng-dev libonig-dev libxml2-dev \
-    zip unzip libzip-dev \
-    libwebp-dev libjpeg62-turbo-dev libfreetype6-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+# ---------- System Dependencies ----------
+RUN apk add --no-cache \
+    bash \
+    curl \
+    git \
+    unzip \
+    libzip-dev \
+    oniguruma-dev \
+    icu-dev \
+    mysql-client \
+    supervisor
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd opcache zip
+# ---------- Build deps for PECL + phpize ----------
+RUN apk add --no-cache --virtual .build-deps \
+    $PHPIZE_DEPS \
+    linux-headers
 
-# Redis extension
-RUN pecl install redis && docker-php-ext-enable redis
+# ---------- PHP Extensions (core) ----------
+RUN docker-php-ext-install \
+    pdo_mysql \
+    mbstring \
+    intl \
+    zip \
+    bcmath
 
-# Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# ---------- PHPRedis (PECL) ----------
+RUN pecl install redis \
+    && docker-php-ext-enable redis
 
-WORKDIR /var/www
+# ---------- Remove build deps ----------
+RUN apk del .build-deps
 
-# Copy only composer files first (better caching)
-COPY composer.json composer.lock ./
+# ---------- Composer ----------
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Install dependencies (DEV: keep dev deps)
-RUN composer install --prefer-dist --no-interaction
+# ---------- Set Working Directory ----------
+WORKDIR /var/www/html
 
-# Copy the rest
+# ---------- Copy Project Files ----------
 COPY . .
 
-# Ensure permissions (won't matter if volume mounted, but ok for non-mounted)
-RUN mkdir -p /var/www/storage /var/www/bootstrap/cache \
-    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# ---------- Install PHP Dependencies ----------
+# (For local dev you may remove --no-dev if you want dev packages)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-EXPOSE 9000
-CMD ["php-fpm"]
+# ---------- Permissions ----------
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# ---------- Default Port ----------
+ENV PORT=4002
+EXPOSE 4002
+
+# ---------- Start Laravel ----------
+CMD ["sh", "-lc", "php artisan serve --host=0.0.0.0 --port=${PORT}"]

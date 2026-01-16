@@ -7,7 +7,7 @@ services:
     container_name: inventory_app
     restart: unless-stopped
     ports:
-      - "1236:8000"
+      - "1236:4002"
     environment:
       APP_NAME: ${APP_NAME}
       APP_ENV: ${APP_ENV}
