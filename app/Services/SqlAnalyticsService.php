@@ -24,7 +24,16 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
         return Cache::remember($cacheKey, 300, function () use ($userId, $includeRevenue) {
             
             $totalProducts = Product::count();
-            $lowStock = Product::where('quantity', '<', 10)->where('quantity', '>', 0)->count();
+            
+            // Dynamic Low Stock: Product > Category > Global(10)
+            // Using join to get category threshold.
+            $lowStock = DB::table('products')
+                ->join('categories', 'products.category_id', '=', 'categories.id')
+                ->where('products.quantity', '>', 0) // Exclude out of stock
+                ->whereRaw('products.quantity <= COALESCE(products.low_stock_threshold, categories.low_stock_threshold, 10)')
+                ->whereNull('products.deleted_at') // Handle soft deletes
+                ->count();
+
             $outStock = Product::where('quantity', '=', 0)->count();
             
             $totalOrders = Order::count();

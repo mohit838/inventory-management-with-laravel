@@ -54,5 +54,10 @@ Route::prefix('v1')->group(function () {
         // Dashboard
         Route::get('dashboard/summary', [\App\Http\Controllers\Api\DashboardController::class, 'summary'])->middleware('permission:dashboard.view');
         Route::get('dashboard/chart', [\App\Http\Controllers\Api\DashboardController::class, 'chart'])->middleware('permission:dashboard.view');
+        
+        // Notifications
+        Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+        Route::patch('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markAsRead']);
+        Route::patch('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllAsRead']);
     });
 });

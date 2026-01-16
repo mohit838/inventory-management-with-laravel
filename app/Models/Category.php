@@ -9,7 +9,7 @@ class Category extends Model
 {
     use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\ActiveScope;
 
-    protected $fillable = ['name', 'slug', 'description', 'active'];
+    protected $fillable = ['name', 'slug', 'description', 'active', 'low_stock_threshold'];
 
     public function subcategories()
     {

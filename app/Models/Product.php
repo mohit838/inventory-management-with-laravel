@@ -9,7 +9,19 @@ class Product extends Model
 {
     use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\ActiveScope;
 
-    protected $fillable = ['category_id', 'subcategory_id', 'name', 'sku', 'description', 'price', 'quantity', 'active'];
+    protected $fillable = [
+        'category_id',
+        'subcategory_id',
+        'name',
+        'slug',
+        'sku',
+        'description',
+        'image_url',
+        'price',
+        'quantity',
+        'active',
+        'low_stock_threshold'
+    ];
 
     public function category()
     {
