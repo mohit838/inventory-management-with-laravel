@@ -18,7 +18,7 @@ RUN apk add --no-cache --virtual .build-deps \
     $PHPIZE_DEPS \
     linux-headers
 
-# ---------- PHP Extensions (core) ----------
+# ---------- PHP Extensions ----------
 RUN docker-php-ext-install \
     pdo_mysql \
     mbstring \
@@ -36,18 +36,19 @@ RUN apk del .build-deps
 # ---------- Composer ----------
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# ---------- Set Working Directory ----------
+# ---------- Working Directory ----------
 WORKDIR /var/www/html
 
 # ---------- Copy Project Files ----------
 COPY . .
 
-# ---------- Install PHP Dependencies ----------
-# (For local dev you may remove --no-dev if you want dev packages)
+# ---------- Install Dependencies ----------
+# For dev, you can remove --no-dev
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # ---------- Permissions ----------
-RUN chown -R www-data:www-data storage bootstrap/cache
+RUN mkdir -p storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
 # ---------- Default Port ----------
 ENV PORT=4002
