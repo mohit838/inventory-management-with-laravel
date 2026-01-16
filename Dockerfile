@@ -49,9 +49,14 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # ---------- Permissions ----------
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+# ---------- Entrypoint ----------
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # ---------- Default Port ----------
 ENV PORT=4002
 EXPOSE 4002
 
-# ---------- Start Laravel ----------
-CMD ["sh", "-lc", "php artisan serve --host=0.0.0.0 --port=${PORT}"]
+# ---------- Execution ----------
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=4002"]

@@ -90,10 +90,6 @@ pipeline {
 
           docker compose -f docker-compose.yml up -d
 
-          echo "Running migrations + seed..."
-          docker exec inventory_app php artisan migrate --force
-          docker exec inventory_app php artisan db:seed --force
-
           docker ps
         '''
       }

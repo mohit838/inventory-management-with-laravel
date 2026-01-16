@@ -7,16 +7,14 @@ services:
       - "1236:4002"
     env_file: [.env]
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks: [app-network]
     volumes:
       - ./storage:/var/www/html/storage
       - ./bootstrap/cache:/var/www/html/bootstrap/cache
-    command: >
-      sh -c "
-      php artisan serve --host=0.0.0.0 --port=4002
-      "
 
   mysql:
     image: mysql:8.0
@@ -33,6 +31,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$DB_USERNAME", "-p$$DB_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks: [app-network]
 
   redis:
@@ -44,6 +47,11 @@ services:
     env_file: [.env]
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks: [app-network]
     volumes:
       - redis_data:/data
