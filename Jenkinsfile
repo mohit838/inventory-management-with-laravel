@@ -78,6 +78,11 @@ pipeline {
           echo "Stopping old containers..."
           docker ps -aq --filter "name=inventory_" | xargs -r docker stop
           docker ps -aq --filter "name=inventory_" | xargs -r docker rm
+
+          echo "Cleaning host-side caches and logs..."
+          rm -f bootstrap/cache/*.php
+          rm -f storage/logs/*.log
+          rm -rf storage/framework/views/*.php
         '''
       }
     }
