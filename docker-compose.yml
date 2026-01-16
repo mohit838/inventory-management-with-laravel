@@ -3,11 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: inventory-service:latest
+    image: ${APP_IMAGE:-inventory-service:latest}
     container_name: inventory_app
     restart: unless-stopped
     ports:
-      - "1236:9000"
+      - "1236:8000"
     environment:
       APP_NAME: ${APP_NAME}
       APP_ENV: ${APP_ENV}
@@ -41,15 +41,20 @@ services:
       - redis
     networks:
       - app-network
-    # Dev server (so you can access on localhost:1236)
-    command: sh -c "php artisan serve --host=0.0.0.0 --port=8000"
+
+    command: >
+      sh -c "
+      mkdir -p /var/www/storage /var/www/bootstrap/cache &&
+      chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache &&
+      php artisan serve --host=0.0.0.0 --port=8000
+      "
 
   mysql:
     image: mysql:8.0
     container_name: inventory_mysql
     restart: unless-stopped
     ports:
-      - "1234:3306" # dev only
+      - "1234:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -66,9 +71,7 @@ services:
     container_name: inventory_redis
     restart: unless-stopped
     ports:
-      - "1235:8001" # Redis Stack GUI (RedisInsight)
-      # If you also want Redis from host, uncomment:
-      # - "6379:6379"
+      - "1235:8001" # RedisInsight GUI
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD}"
     volumes:
