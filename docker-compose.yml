@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: inventory-service:latest
+    container_name: inventory_app
+    restart: unless-stopped
+    ports:
+      - "8000:9000" # Expose PHP-FPM for Nginx or use internal networking
+    environment:
+      APP_NAME: ${APP_NAME}
+      APP_ENV: ${APP_ENV}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG}
+      APP_URL: ${APP_URL}
+      
+      DB_CONNECTION: mysql
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: ${REDIS_PORT}
+      
+      FILESYSTEM_DISK: minio_private
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET_PRIVATE: ${MINIO_BUCKET_PRIVATE}
+      MINIO_REGION: ${MINIO_REGION}
+      MINIO_USE_SSL: ${MINIO_USE_SSL}
+      
+    volumes:
+      - ./:/var/www
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
