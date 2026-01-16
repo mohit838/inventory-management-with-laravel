@@ -46,5 +46,9 @@ Route::prefix('v1')->group(function () {
         
         Route::get('settings', [UserSettingController::class, 'index'])->middleware('permission:settings.manage');
         Route::post('settings', [UserSettingController::class, 'update'])->middleware('permission:settings.manage');
+        
+        // Orders
+        Route::post('orders', [\App\Http\Controllers\Api\OrderController::class, 'store'])->middleware('permission:orders.create');
+        Route::get('orders/{id}/invoice', [\App\Http\Controllers\Api\OrderController::class, 'invoice'])->middleware('permission:orders.view');
     });
 });
