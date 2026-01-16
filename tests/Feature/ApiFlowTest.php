@@ -220,4 +220,29 @@ class ApiFlowTest extends TestCase
         $files = Storage::disk('minio_private')->allFiles("tenants/{$user->id}/products");
         $this->assertGreaterThan(0, count($files));
     }
+
+    public function test_public_upload()
+    {
+        Storage::fake('minio');
+        
+        $user = User::factory()->create(['role' => 'admin', 'active' => true]);
+        $jwt = app(\App\Services\JwtService::class);
+        $token = $jwt->generateAccessToken($user->id);
+        $headers = ['Authorization' => 'Bearer ' . $token];
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('banner.jpg');
+
+        $response = $this->postJson('/api/v1/uploads/public', [
+            'image' => $file
+        ], $headers);
+
+        $response->assertStatus(201)
+                 ->assertJsonStructure(['data' => ['url']]);
+
+        // Verify it went to the 'minio' disk (public)
+        // Note: Filename changes (uniqid), so just check if any file exists in 'public' dir (default path)
+        // MinioService default path for public upload is 'public'
+        $files = Storage::disk('minio')->allFiles('public'); 
+        $this->assertGreaterThan(0, count($files));
+    }
 }

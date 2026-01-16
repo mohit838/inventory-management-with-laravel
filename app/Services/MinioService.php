@@ -49,4 +49,40 @@ class MinioService
 
         return null; 
     }
+
+    public function uploadPublic(UploadedFile $file, string $path = 'public', int $quality = 75, int $maxRetry = 3): ?string
+    {
+        $attempt = 0;
+        $manager = new ImageManager(new Driver());
+
+        do {
+            $attempt++;
+            try {
+                // 1. Compress Image
+                $image = $manager->read($file->getRealPath());
+                $image->scale(width: 1920); 
+                $encoded = $image->toWebp(quality: $quality);
+
+                // 2. Generate Filename
+                $filename = $path . '/' . uniqid() . '.webp';
+
+                // 3. Upload to MinIO Public Disk
+                Storage::disk('minio')->put($filename, (string)$encoded);
+
+                // 4. Return Full URL
+                return Storage::disk('minio')->url($filename);
+
+            } catch (Exception $e) {
+                Log::error("MinIO Public Upload Failed (Attempt $attempt): " . $e->getMessage());
+                
+                if ($attempt >= $maxRetry) {
+                     throw new Exception("Public upload failed after $maxRetry attempts.");
+                }
+                
+                sleep(1); 
+            }
+        } while ($attempt < $maxRetry);
+
+        return null;
+    }
 }

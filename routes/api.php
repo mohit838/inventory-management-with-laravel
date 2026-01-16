@@ -26,6 +26,9 @@ Route::prefix('v1')->group(function () {
         Route::get('products/dropdown', [ProductController::class, 'dropdown']);
         Route::apiResource('products', ProductController::class);
         Route::post('products/{product}/toggle-active', [ProductController::class, 'toggleActive']);
+        
+        Route::post('/uploads/public', [\App\Http\Controllers\Api\PublicUploadController::class, 'store']);
+        
         Route::get('settings', [UserSettingController::class, 'index']);
         Route::post('settings', [UserSettingController::class, 'update']);
     });
