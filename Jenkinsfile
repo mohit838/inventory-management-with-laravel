@@ -72,13 +72,9 @@ pipeline {
       }
     }
 
-    stage('Stop Old Containers') {
+    stage('Prepare Deployment') {
       steps {
         sh '''
-          echo "Stopping old containers..."
-          docker ps -aq --filter "name=inventory_" | xargs -r docker stop
-          docker ps -aq --filter "name=inventory_" | xargs -r docker rm
-
           echo "Cleaning host-side caches and logs..."
           rm -f bootstrap/cache/*.php
           rm -f storage/logs/*.log
@@ -93,12 +89,23 @@ pipeline {
           echo "Deploying commit ${GIT_COMMIT_SHORT}"
           export APP_IMAGE=${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}
 
-          docker compose -f docker-compose.yml up -d
+          # Using --remove-orphans ensures old containers not in the new compose file are removed
+          docker compose -f docker-compose.yml up -d --remove-orphans
 
+          echo "Verifying deployment..."
           docker ps
         '''
       }
-  }
+    }
+
+    stage('Post-Deployment Cleanup') {
+      steps {
+        sh '''
+          echo "Pruning old images..."
+          docker image prune -f
+        '''
+      }
+    }
 
   }
 

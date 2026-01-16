@@ -12,6 +12,12 @@ services:
       redis:
         condition: service_healthy
     networks: [app-network]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4002"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     volumes:
       - ./storage:/var/www/html/storage
       - ./bootstrap/cache:/var/www/html/bootstrap/cache
