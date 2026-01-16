@@ -17,8 +17,22 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $items = $this->repo->all(['*'], ['category', 'subcategory']);
+        $perPage = $request->input('per_page', \App\Constants\GlobalConstants::PER_PAGE_DEFAULT);
+        $search = $request->input('search');
+        
+        if ($search) {
+             $items = $this->repo->search($search, ['name', 'sku', 'description'], $perPage, ['category', 'subcategory']);
+        } else {
+             $items = $this->repo->paginate($perPage, ['*'], ['category', 'subcategory']);
+        }
+
         return response()->json(ProductResource::collection($items));
+    }
+
+    public function dropdown()
+    {
+        $items = $this->repo->all(['id', 'name', 'sku']);
+        return response()->json($items);
     }
 
     public function store(ProductStoreRequest $request)

@@ -14,8 +14,22 @@ class SubcategoryController extends Controller
 
     public function index(Request $request)
     {
-        $items = $this->repo->all(['*'], ['category']);
+        $perPage = $request->input('per_page', \App\Constants\GlobalConstants::PER_PAGE_DEFAULT);
+        $search = $request->input('search');
+
+        if ($search) {
+            $items = $this->repo->search($search, ['name', 'slug'], $perPage, ['category']);
+        } else {
+            $items = $this->repo->paginate($perPage, ['*'], ['category']);
+        }
+        
         return response()->json(\App\Http\Resources\SubcategoryResource::collection($items));
+    }
+
+    public function dropdown()
+    {
+        $items = $this->repo->all(['id', 'name', 'category_id']);
+        return response()->json($items);
     }
 
     public function store(Request $request)

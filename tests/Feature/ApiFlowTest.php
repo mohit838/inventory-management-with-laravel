@@ -111,4 +111,77 @@ class ApiFlowTest extends TestCase
         // Verify Soft Delete
         $this->assertSoftDeleted('categories', ['id' => $id]);
     }
+
+    public function test_pagination_and_search()
+    {
+        $user = User::factory()->create(['role' => 'admin', 'active' => true]);
+        $jwt = app(\App\Services\JwtService::class);
+        $token = $jwt->generateAccessToken($user->id);
+        $headers = ['Authorization' => 'Bearer ' . $token];
+
+        // Create 20 categories
+        for ($i = 0; $i < 20; $i++) {
+            Category::create(['name' => "Cat $i", 'slug' => "cat-$i", 'active' => true]);
+        }
+
+        // Test Pagination
+        $response = $this->getJson('/api/v1/categories?per_page=15', $headers);
+        $response->assertStatus(200);
+        $this->assertCount(15, $response->json('data'));
+        $this->assertArrayHasKey('meta', $response->json()); // Laravel Resources usually wrap in data + meta
+
+        // Test Search
+        $response = $this->getJson('/api/v1/categories?search=Cat 1&per_page=5', $headers);
+        $response->assertStatus(200);
+        // Should find "Cat 1", "Cat 10", "Cat 11", ... "Cat 19" -> 11 items. Limit 5.
+        $this->assertCount(5, $response->json('data'));
+    }
+
+    public function test_dropdowns()
+    {
+        $user = User::factory()->create(['role' => 'user', 'active' => true]);
+        $jwt = app(\App\Services\JwtService::class);
+        $token = $jwt->generateAccessToken($user->id);
+        $headers = ['Authorization' => 'Bearer ' . $token];
+
+        Category::create(['name' => "Dropdown Cat", 'slug' => "dropdown-cat", 'active' => true]);
+
+        $response = $this->getJson('/api/v1/categories/dropdown', $headers);
+        $response->assertStatus(200);
+        $this->assertTrue(is_array($response->json()));
+        $this->assertArrayHasKey('id', $response->json()[0]);
+        $this->assertArrayHasKey('name', $response->json()[0]);
+    }
+
+    public function test_product_with_null_subcategory_and_settings()
+    {
+        $user = User::factory()->create(['role' => 'admin', 'active' => true]);
+        $jwt = app(\App\Services\JwtService::class);
+        $token = $jwt->generateAccessToken($user->id);
+        $headers = ['Authorization' => 'Bearer ' . $token];
+
+        $cat = Category::create(['name' => 'Main', 'slug' => 'main', 'active' => true]);
+
+        // Create Product with NULL Subcategory
+        $response = $this->postJson('/api/v1/products', [
+            'category_id' => $cat->id,
+            'subcategory_id' => null,
+            'name' => 'Null Sub Product',
+            'sku' => 'NSP-001',
+            'price' => 100,
+            'quantity' => 10,
+            'active' => true
+        ], $headers);
+        $response->assertStatus(201);
+
+        // User Settings
+        // Set
+        $this->postJson('/api/v1/settings', ['key' => 'theme', 'value' => 'dark'], $headers)
+             ->assertStatus(200);
+        
+        // Get
+        $this->getJson('/api/v1/settings', $headers)
+             ->assertStatus(200)
+             ->assertJsonFragment(['key' => 'theme', 'value' => 'dark']);
+    }
 }

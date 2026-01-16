@@ -17,8 +17,26 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        $items = $this->repo->all(['*'], ['subcategories']);
+        $perPage = $request->input('per_page', \App\Constants\GlobalConstants::PER_PAGE_DEFAULT);
+        $search = $request->input('search');
+
+        if ($search) {
+            $items = $this->repo->search($search, ['name', 'slug'], $perPage, ['subcategories']);
+        } else {
+            $items = $this->repo->paginate($perPage, ['*'], ['subcategories']);
+        }
+        
         return response()->json(CategoryResource::collection($items));
+    }
+
+    public function dropdown()
+    {
+        // Dropdowns usually return lightweight list. Cache this heavily.
+        // We can add a specialized method in repo or just use all() and map here.
+        // For simplicity and to use repo caching, let's use all() but we might want to ensure it uses a cache tag or key.
+        // Repo->all() is cached.
+        $items = $this->repo->all(['id', 'name']);
+        return response()->json($items);
     }
 
     public function store(CategoryStoreRequest $request)

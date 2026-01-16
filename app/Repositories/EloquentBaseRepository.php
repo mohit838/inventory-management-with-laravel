@@ -66,4 +66,19 @@ abstract class EloquentBaseRepository implements BaseRepositoryInterface
         $model = $this->findTrashed($id);
         return $model->forceDelete();
     }
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = [])
+    {
+        return $this->model->with($relations)->paginate($perPage, $columns);
+    }
+
+    public function search(string $term, array $searchableFields, int $perPage = 15, array $relations = [])
+    {
+        return $this->model->with($relations)
+            ->where(function ($query) use ($term, $searchableFields) {
+                foreach ($searchableFields as $field) {
+                    $query->orWhere($field, 'like', '%' . $term . '%');
+                }
+            })
+            ->paginate($perPage);
+    }
 }

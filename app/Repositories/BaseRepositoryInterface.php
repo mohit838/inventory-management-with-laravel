@@ -12,5 +12,6 @@ interface BaseRepositoryInterface
     public function findTrashed(int $id);
     public function findWithInactive(int $id);
     public function restore(int $id);
-    public function forceDelete(int $id);
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = []);
+    public function search(string $term, array $searchableFields, int $perPage = 15, array $relations = []);
 }
