@@ -39,24 +39,29 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # ---------- Set Working Directory ----------
 WORKDIR /var/www/html
 
+# ---------- Copy composer files first (better cache) ----------
+COPY composer.json composer.lock ./
+
+# IMPORTANT FIX:
+# Don't run Laravel scripts during build (package:discover runs here and fails)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
 # ---------- Copy Project Files ----------
 COPY . .
-
-# ---------- Install PHP Dependencies ----------
-# (For local dev you may remove --no-dev if you want dev packages)
-RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # ---------- Permissions ----------
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 # ---------- Entrypoint ----------
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # ---------- Default Port ----------
 ENV PORT=4002
-EXPOSE ${PORT}
+EXPOSE 4002
 
 # ---------- Execution ----------
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD php artisan serve --host=0.0.0.0 --port=$PORT
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+# JSON array CMD (fixes warning + proper signals)
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=4002"]
