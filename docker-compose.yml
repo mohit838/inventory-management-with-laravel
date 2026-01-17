@@ -17,13 +17,13 @@ services:
       - "host.docker.internal:host-gateway"
 
     env_file:
-      - .env
+      - .env.local
 
-    environment:
-      DB_HOST: host.docker.internal
-      DB_PORT: ${DOCKER_MYSQL_PORT_EXTERNAL}
-      REDIS_HOST: host.docker.internal
-      REDIS_PORT: ${DOCKER_REDIS_PORT_EXTERNAL}
+    # environment:
+    #   DB_HOST: host.docker.internal
+    #   DB_PORT: ${DOCKER_MYSQL_PORT_EXTERNAL}
+    #   REDIS_HOST: host.docker.internal
+    #   REDIS_PORT: ${DOCKER_REDIS_PORT_EXTERNAL}
 
     volumes:
       - inventory_storage:/var/www/html/storage

@@ -11,6 +11,10 @@ use App\Http\Controllers\Api\SubcategoryController;
 use App\Http\Controllers\Api\UserSettingController;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'service' => 'api']);
+});
+
 Route::prefix('v1')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
