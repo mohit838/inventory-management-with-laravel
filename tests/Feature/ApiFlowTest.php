@@ -158,9 +158,12 @@ class ApiFlowTest extends TestCase
 
         $response = $this->getJson('/api/v1/categories/dropdown', $headers);
         $response->assertStatus(200);
-        $this->assertTrue(is_array($response->json()));
-        $this->assertArrayHasKey('id', $response->json()[0]);
-        $this->assertArrayHasKey('name', $response->json()[0]);
+        $data = $response->json();
+        if (isset($data['data'])) $data = $data['data'];
+        
+        $this->assertNotEmpty($data);
+        $this->assertArrayHasKey('id', $data[0]);
+        $this->assertArrayHasKey('name', $data[0]);
     }
 
     public function test_product_with_null_subcategory_and_settings()

@@ -60,10 +60,10 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
 
             return [
                 'total_products' => $totalProducts,
-                'low_stock_alerts' => $lowStock, // Renamed to match resource
+                'low_stock_count' => $lowStock, 
                 'out_of_stock_count' => $outStock,
                 'total_orders' => $totalOrders,
-                'revenue' => $totalRevenue ? (float) $totalRevenue : null,
+                'total_revenue' => $includeRevenue ? (float) ($totalRevenue ?? 0) : null,
                 'pending_orders_count' => $pendingOrders,
                 'top_categories' => $topCategories,
             ];
@@ -100,7 +100,7 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
                 
                 return [
                     'labels' => $labels,
-                    'data' => $values
+                    'values' => $values
                 ];
             }
             

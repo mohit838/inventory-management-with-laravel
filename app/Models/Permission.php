@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Permission extends Model
 {
-    protected $fillable = ['name', 'slug', 'group'];
+    protected $fillable = ['name', 'slug', 'group', 'guard_name'];
 
     public function users()
     {

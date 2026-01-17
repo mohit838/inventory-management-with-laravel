@@ -24,17 +24,26 @@ return new class extends Migration
 
         Schema::create($tableNames['permissions'], function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');       // For MySQL 8.0 use string('name', 125);
-            $table->string('guard_name'); // For MySQL 8.0 use string('guard_name', 125);
+            $table->string('name');
+            $table->string('slug')->unique();  // Added for custom RBAC
+            $table->string('group')->nullable(); // Added for grouping permissions
+            $table->string('guard_name');
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);
         });
 
+        // Create the custom permission_user pivot table used by HasPermissions trait
+        Schema::create('permission_user', function (Blueprint $table) {
+            $table->foreignId('permission_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->primary(['permission_id', 'user_id']);
+        });
+
         Schema::create($tableNames['roles'], function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');       // For MySQL 8.0 use string('name', 125);
-            $table->string('guard_name'); // For MySQL 8.0 use string('guard_name', 125);
+            $table->string('name');
+            $table->string('guard_name');
             $table->timestamps();
 
             $table->unique(['name', 'guard_name']);
@@ -123,6 +132,7 @@ return new class extends Migration
             throw new \Exception('Error: config/permission.php not found and defaults could not be merged. Please publish the package configuration before proceeding, or drop the tables manually.');
         }
 
+        Schema::dropIfExists('permission_user'); // Drop custom pivot table
         Schema::drop($tableNames['role_has_permissions']);
         Schema::drop($tableNames['model_has_roles']);
         Schema::drop($tableNames['model_has_permissions']);

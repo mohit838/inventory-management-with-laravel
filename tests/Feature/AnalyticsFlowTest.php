@@ -30,10 +30,10 @@ class AnalyticsFlowTest extends TestCase
 
         // 1. Setup Data
         // Products
-        Category::create(['name' => 'C', 'slug' => 'c', 'active' => 1]);
-        Product::factory()->count(5)->create(['quantity' => 20, 'category_id' => 1, 'active' => 1]); // Normal
-        Product::factory()->count(2)->create(['quantity' => 5, 'category_id' => 1, 'active' => 1]);  // Low Stock
-        Product::factory()->count(1)->create(['quantity' => 0, 'category_id' => 1, 'active' => 1]);  // Out Stock
+        $cat = Category::create(['name' => 'C', 'slug' => 'c', 'active' => 1]);
+        Product::factory()->count(5)->create(['quantity' => 20, 'category_id' => $cat->id, 'active' => 1]); // Normal
+        Product::factory()->count(2)->create(['quantity' => 5, 'category_id' => $cat->id, 'active' => 1]);  // Low Stock
+        Product::factory()->count(1)->create(['quantity' => 0, 'category_id' => $cat->id, 'active' => 1]);  // Out Stock
         // Total Products = 8.
         
         // Orders

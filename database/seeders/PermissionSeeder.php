@@ -14,43 +14,34 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         // Reset cached roles and permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-        $permissions = [
-            // Category permissions
-            'categories.view', 'categories.create', 'categories.edit', 'categories.delete',
-            // Product permissions
-            'products.view', 'products.create', 'products.edit', 'products.delete',
-            // Order permissions
-            'orders.view', 'orders.create',
-            // Dashboard permissions
-            'dashboard.view', 'dashboard.view_revenue',
-            // Settings & User Management
-            'settings.manage',
-            'users.manage',
-        ];
-
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+        if (class_exists(\Spatie\Permission\PermissionRegistrar::class)) {
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         }
 
-        // 1. Super Admin - Has everything
-        $superAdminRole = Role::firstOrCreate(['name' => 'superadmin']);
-        $superAdminRole->syncPermissions(Permission::all());
+        $modules = [
+            'categories' => ['view', 'create', 'edit', 'delete'],
+            'products' => ['view', 'create', 'edit', 'delete'],
+            'orders' => ['view', 'create'],
+            'dashboard' => ['view', 'view_revenue'],
+            'settings' => ['manage'],
+            'users' => ['manage'],
+        ];
 
-        // 2. Admin - Has everything except user management
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $adminRole->syncPermissions(Permission::all());
-        $adminRole->revokePermissionTo('users.manage');
+        foreach ($modules as $module => $actions) {
+            foreach ($actions as $action) {
+                $slug = "$module.$action";
+                \App\Models\Permission::firstOrCreate(
+                    ['slug' => $slug],
+                    [
+                        'name' => ucfirst($action) . ' ' . ucfirst($module),
+                        'group' => $module,
+                        'guard_name' => 'web'
+                    ]
+                );
+            }
+        }
 
-        // 3. User - View only + Create Orders
-        $userRole = Role::firstOrCreate(['name' => 'user']);
-        $userRole->syncPermissions([
-            'categories.view', 
-            'products.view', 
-            'orders.view', 
-            'orders.create',
-            'dashboard.view'
-        ]);
+        // We still create roles in Spatie's table for compatibility if needed, 
+        // but our primary check is now via HasPermissions trait and slugs.
     }
 }

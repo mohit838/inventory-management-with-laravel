@@ -55,6 +55,6 @@ class UserSettingController extends Controller
         $userId = $request->user() ? $request->user()->id : 0;
         $setting = $this->repo->set($userId, $request->key, $request->value);
         
-        return new UserSettingResource($setting);
+        return (new UserSettingResource($setting))->response()->setStatusCode(200);
     }
 }
