@@ -53,6 +53,30 @@ class ProductController extends Controller
         ]);
     }
 
+    #[OA\Get(
+        path: '/api/v1/products/dropdown',
+        tags: ['Products'],
+        summary: 'Get products for dropdown',
+        security: [['bearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Successful operation'),
+        ]
+    )]
+    public function dropdown()
+    {
+        $items = $this->repo->all(['id', 'name', 'sku']);
+
+        return response()->json([
+            'data' => $items->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'sku' => $item->sku
+                ];
+            })
+        ]);
+    }
+
     #[OA\Post(
         path: '/api/v1/products',
         tags: ['Products'],
