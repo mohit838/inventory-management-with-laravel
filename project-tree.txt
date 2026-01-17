@@ -1,0 +1,185 @@
+.
+├── app
+│   ├── Console
+│   │   └── Commands
+│   │       └── CheckInventoryLevels.php
+│   ├── Constants
+│   │   └── GlobalConstants.php
+│   ├── Enums
+│   │   ├── OrderStatus.php
+│   │   ├── PaymentMethod.php
+│   │   └── PaymentStatus.php
+│   ├── Http
+│   │   ├── Controllers
+│   │   │   ├── Api
+│   │   │   │   ├── AuditLogController.php
+│   │   │   │   ├── AuthController.php
+│   │   │   │   ├── CategoryController.php
+│   │   │   │   ├── DashboardController.php
+│   │   │   │   ├── NotificationController.php
+│   │   │   │   ├── OrderController.php
+│   │   │   │   ├── ProductController.php
+│   │   │   │   ├── PublicUploadController.php
+│   │   │   │   ├── SubcategoryController.php
+│   │   │   │   └── UserSettingController.php
+│   │   │   └── Controller.php
+│   │   ├── Middleware
+│   │   │   ├── CheckPermission.php
+│   │   │   ├── JwtMiddleware.php
+│   │   │   ├── RoleMiddleware.php
+│   │   │   └── SwaggerBasicAuth.php
+│   │   ├── Requests
+│   │   │   ├── OrderStoreRequest.php
+│   │   │   ├── ProductStoreRequest.php
+│   │   │   └── ProductUpdateRequest.php
+│   │   └── Resources
+│   │       ├── DashboardSummaryResource.php
+│   │       └── UserResource.php
+│   ├── Interfaces
+│   │   ├── AnalyticsServiceInterface.php
+│   │   └── CacheServiceInterface.php
+│   ├── Models
+│   │   ├── AuditLog.php
+│   │   ├── Category.php
+│   │   ├── OrderItem.php
+│   │   ├── Order.php
+│   │   ├── Permission.php
+│   │   ├── Product.php
+│   │   ├── RefreshToken.php
+│   │   ├── Subcategory.php
+│   │   ├── User.php
+│   │   └── UserSetting.php
+│   ├── Notifications
+│   │   └── LowStockAlert.php
+│   ├── Providers
+│   │   └── AppServiceProvider.php
+│   ├── Repositories
+│   │   ├── BaseRepositoryInterface.php
+│   │   ├── CategoryRepository.php
+│   │   ├── EloquentBaseRepository.php
+│   │   ├── OrderRepository.php
+│   │   ├── ProductRepository.php
+│   │   ├── SubcategoryRepository.php
+│   │   └── UserSettingRepository.php
+│   ├── Services
+│   │   ├── AuditService.php
+│   │   ├── InvoiceService.php
+│   │   ├── JwtService.php
+│   │   ├── MinioService.php
+│   │   ├── OrderService.php
+│   │   ├── RedisCacheService.php
+│   │   └── SqlAnalyticsService.php
+│   └── Traits
+│       ├── ActiveScope.php
+│       ├── HasPermissions.php
+│       └── PaginationTrait.php
+├── artisan
+├── bootstrap
+│   ├── app.php
+│   ├── cache
+│   │   ├── packages.php
+│   │   └── services.php
+│   └── providers.php
+├── composer.json
+├── composer.lock
+├── config
+│   ├── app.php
+│   ├── auth.php
+│   ├── cache.php
+│   ├── database.php
+│   ├── filesystems.php
+│   ├── l5-swagger.php
+│   ├── logging.php
+│   ├── mail.php
+│   ├── queue.php
+│   ├── services.php
+│   └── session.php
+├── database
+│   ├── factories
+│   │   ├── ProductFactory.php
+│   │   └── UserFactory.php
+│   ├── migrations
+│   │   ├── 0001_01_01_000000_create_users_table.php
+│   │   ├── 0001_01_01_000001_create_cache_table.php
+│   │   ├── 0001_01_01_000002_create_jobs_table.php
+│   │   ├── 2026_01_16_000001_create_categories_table.php
+│   │   ├── 2026_01_16_000002_create_subcategories_table.php
+│   │   ├── 2026_01_16_000003_create_products_table.php
+│   │   ├── 2026_01_16_000004_create_refresh_tokens_table.php
+│   │   ├── 2026_01_16_000005_add_role_to_users_table.php
+│   │   ├── 2026_01_16_000006_create_user_settings_table.php
+│   │   ├── 2026_01_16_101246_create_orders_tables.php
+│   │   ├── 2026_01_16_103610_add_low_stock_threshold_to_categories_and_products.php
+│   │   ├── 2026_01_16_180000_create_permission_tables.php
+│   │   └── 2026_01_17_045105_create_audit_logs_table.php
+│   └── seeders
+│       ├── DatabaseSeeder.php
+│       └── PermissionSeeder.php
+├── DEV_GUIDE.md
+├── docker
+│   └── mysql
+│       └── init
+│           └── 00-init.sql
+├── docker-compose.yml
+├── docker-entrypoint.sh
+├── Dockerfile
+├── Jenkinsfile
+├── package.json
+├── phpunit.xml
+├── PROJECT_OVERVIEW.md
+├── project-tree.txt
+├── public
+│   ├── favicon.ico
+│   ├── index.php
+│   └── robots.txt
+├── README.md
+├── resources
+│   ├── css
+│   │   └── app.css
+│   ├── js
+│   │   ├── app.js
+│   │   └── bootstrap.js
+│   └── views
+│       └── welcome.blade.php
+├── routes
+│   ├── api.php
+│   ├── console.php
+│   └── web.php
+├── storage
+│   ├── api-docs
+│   │   └── api-docs.json
+│   ├── app
+│   │   ├── private
+│   │   └── public
+│   └── framework
+│       ├── cache
+│       │   └── data
+│       ├── sessions
+│       ├── testing
+│       │   └── disks
+│       │       ├── minio
+│       │       │   └── public
+│       │       │       └── 696b1647381bf.webp
+│       │       └── minio_private
+│       │           └── tenants
+│       │               └── 10
+│       │                   └── products
+│       │                       └── 696b1646e01c1.webp
+│       └── views
+│           └── 74ea6dd425d547f34c905292bd19b92b.php
+├── tests
+│   ├── Feature
+│   │   ├── AlertFlowTest.php
+│   │   ├── AnalyticsFlowTest.php
+│   │   ├── ApiFlowTest.php
+│   │   ├── AuditFlowTest.php
+│   │   ├── ExampleTest.php
+│   │   ├── OrderFlowTest.php
+│   │   └── RbacFlowTest.php
+│   ├── Pest.php
+│   ├── TestCase.php
+│   └── Unit
+│       └── ExampleTest.php
+└── vite.config.js
+
+55 directories, 127 files
