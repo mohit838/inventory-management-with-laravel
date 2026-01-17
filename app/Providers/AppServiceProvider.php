@@ -12,7 +12,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         if (! defined('L5_SWAGGER_CONST_HOST')) {
-            define('L5_SWAGGER_CONST_HOST', env('L5_SWAGGER_CONST_HOST', 'http://localhost:8000'));
+            define('L5_SWAGGER_CONST_HOST', env('L5_SWAGGER_CONST_HOST', config('app.url')));
         }
 
         $this->app->bind(
@@ -36,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.env') === 'production' || \Illuminate\Support\Facades\Request::header('X-Forwarded-Proto') == 'https') {
+             \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
             // Check if user has permission (via HasPermissions trait)
             // This handles Superadmin bypass (returns true) and direct permission check.
