@@ -1,26 +1,44 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-echo "Waiting for MySQL..."
+echo "==> Waiting for MySQL at ${DB_HOST}:${DB_PORT} ..."
 
-until mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --skip-ssl -e "SELECT 1" >/dev/null 2>&1
+# Avoid leaking password via ps output
+export MYSQL_PWD="${DB_PASSWORD}"
+
+until mysql \
+  -h "${DB_HOST}" \
+  -P "${DB_PORT}" \
+  -u "${DB_USERNAME}" \
+  -e "SELECT 1" >/dev/null 2>&1
 do
-  echo "MySQL not ready... sleeping"
+  echo "MySQL not ready... sleeping 2s"
   sleep 2
 done
 
-echo "MySQL is ready!"
+echo "==> MySQL is ready!"
 
-# Clear cached config so wrong old values don't remain
+# Optional: wait for Redis too (recommended if cache/queue uses redis)
+if [ -n "${REDIS_HOST}" ] && [ -n "${REDIS_PORT}" ] && [ -n "${REDIS_PASSWORD}" ]; then
+  echo "==> Waiting for Redis at ${REDIS_HOST}:${REDIS_PORT} ..."
+  until redis-cli -h "${REDIS_HOST}" -p "${REDIS_PORT}" -a "${REDIS_PASSWORD}" ping 2>/dev/null | grep -q PONG
+  do
+    echo "Redis not ready... sleeping 2s"
+    sleep 2
+  done
+  echo "==> Redis is ready!"
+fi
+
+echo "==> Clearing cached config/routes/views..."
 php artisan optimize:clear || true
 
-# migrate
+echo "==> Running migrations..."
 php artisan migrate --force
 
-# cache again
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+echo "==> Rebuilding caches..."
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
 
-echo "Starting application..."
+echo "==> Starting application..."
 exec "$@"
