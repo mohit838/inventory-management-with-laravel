@@ -12,6 +12,25 @@
         }
     ],
     "paths": {
+        "/api/v1/audit-logs": {
+            "get": {
+                "tags": [
+                    "Audit Logs"
+                ],
+                "summary": "Get system audit logs (Cached)",
+                "operationId": "7f115046a37f1a2354063be8a5e3fc2b",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/register": {
             "post": {
                 "tags": [
@@ -657,7 +676,7 @@
                                     "name",
                                     "sku",
                                     "price",
-                                    "stock"
+                                    "quantity"
                                 ],
                                 "properties": {
                                     "name": {
@@ -669,7 +688,7 @@
                                     "price": {
                                         "type": "number"
                                     },
-                                    "stock": {
+                                    "quantity": {
                                         "type": "integer"
                                     },
                                     "image": {
@@ -691,6 +710,25 @@
                 "responses": {
                     "201": {
                         "description": "Product created"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/products/dropdown": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get products for dropdown",
+                "operationId": "4f66b09b91dbb97e673584e2dea523fd",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
                     }
                 },
                 "security": [
@@ -764,7 +802,7 @@
                                     "price": {
                                         "type": "number"
                                     },
-                                    "stock": {
+                                    "quantity": {
                                         "type": "integer"
                                     },
                                     "category_id": {
@@ -1191,6 +1229,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Audit Logs",
+            "description": "System Audit Logs"
+        },
         {
             "name": "Auth",
             "description": "API Endpoints for Authentication"

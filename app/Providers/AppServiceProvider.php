@@ -13,19 +13,18 @@ class AppServiceProvider extends ServiceProvider
     {
         if (! defined('L5_SWAGGER_CONST_HOST')) {
             $host = env('L5_SWAGGER_CONST_HOST', config('app.url'));
-            
-            // Ensure HTTPS if configured in APP_URL or running in production
-            if (str_starts_with(config('app.url'), 'https://') && !str_starts_with($host, 'https://')) {
-                $host = str_replace('http://', 'https://', $host);
+
+            // Ensure schema matches APP_URL to avoid mixed content
+            $appUrlScheme = parse_url(config('app.url'), PHP_URL_SCHEME);
+            if ($appUrlScheme && !str_starts_with($host, $appUrlScheme . '://')) {
+                $host = preg_replace('/^https?:\/\//', '', $host);
+                $host = $appUrlScheme . '://' . $host;
             }
-            
+
             define('L5_SWAGGER_CONST_HOST', $host);
         }
 
-        $this->app->bind(
-            \App\Interfaces\InvoiceGeneratorInterface::class,
-            \App\Services\BasicJsonInvoiceGenerator::class
-        );
+        // Since OrderService uses InvoiceService directly, we don't need these non-existent bindings.
 
         $this->app->bind(
             \App\Interfaces\AnalyticsServiceInterface::class,
@@ -44,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if (config('app.env') === 'production' || \Illuminate\Support\Facades\Request::header('X-Forwarded-Proto') == 'https') {
-             \Illuminate\Support\Facades\URL::forceScheme('https');
+            \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {

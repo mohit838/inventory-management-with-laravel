@@ -386,3 +386,7 @@ docker network connect inventory-net inventory_redis || true
 docker build -t mohit838/img:latest .
 docker push mohit838/img:latest
 ```
+
+## Working Process or Coding Struct
+
+![alt text](image.png)
