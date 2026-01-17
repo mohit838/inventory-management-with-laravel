@@ -98,18 +98,16 @@ pipeline {
       }
     }
 
-    stage('Post-Deployment Cleanup') {
-      steps {
-        sh '''
-          echo "Pruning old images..."
-          docker image prune -f
-        '''
-      }
-    }
+
 
   }
 
   post {
+    always {
+      echo "Cleaning up workspace and unused Docker images..."
+      sh 'docker image prune -af --filter "until=1h"' // Remove all unused images older than 24h
+      cleanWs()
+    }
     success {
       echo "Deployment successful (${GIT_COMMIT_SHORT})"
     }
