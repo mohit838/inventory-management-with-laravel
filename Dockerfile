@@ -1,28 +1,20 @@
-# ---------- Base Image ----------
-FROM php:8.3-fpm-alpine
+# ---------- Stage 1: Build ----------
+FROM php:8.3-fpm-alpine as build
 
-# ---------- System Dependencies ----------
+# Install build dependencies
 RUN apk add --no-cache \
-    bash \
-    curl \
+    $PHPIZE_DEPS \
+    linux-headers \
     git \
     unzip \
     libzip-dev \
     oniguruma-dev \
     icu-dev \
-    mysql-client \
-    redis \
-    supervisor \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev
 
-# ---------- Build deps for PECL + phpize ----------
-RUN apk add --no-cache --virtual .build-deps \
-    $PHPIZE_DEPS \
-    linux-headers
-
-# ---------- PHP Extensions (core) ----------
+# Configure and install PHP extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
     pdo_mysql \
@@ -33,11 +25,49 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     gd \
     opcache
 
-# ---------- PHPRedis (PECL) ----------
+# Install PHP Redis extension
 RUN pecl install redis \
     && docker-php-ext-enable redis
 
-# ---------- Production PHP Config ----------
+# Install Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files
+COPY composer.json composer.lock ./
+
+# Install dependencies (no dev, optimized)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# Copy project files
+COPY . .
+
+# ---------- Stage 2: Production ----------
+FROM php:8.3-fpm-alpine
+
+# Install validation/runtime dependencies
+# redis: for redis-cli in entrypoint
+# bash/curl: for entrypoint and general utility
+# Libraries needed for PHP extensions (must match build stage versions effectively)
+RUN apk add --no-cache \
+    bash \
+    curl \
+    supervisor \
+    redis \
+    libzip \
+    icu-libs \
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    oniguruma
+
+# Copy PHP extension artifacts from build stage
+COPY --from=build /usr/local/lib/php/extensions /usr/local/lib/php/extensions
+COPY --from=build /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+
+# Production PHP Configuration
 RUN { \
     echo 'opcache.enable=1'; \
     echo 'opcache.memory_consumption=128'; \
@@ -46,38 +76,22 @@ RUN { \
     echo 'opcache.validate_timestamps=0'; \
     } > /usr/local/etc/php/conf.d/opcache.ini
 
-# ---------- Remove build deps ----------
-RUN apk del .build-deps
-
-# ---------- Composer ----------
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# ---------- Set Working Directory ----------
+# Set working directory
 WORKDIR /var/www/html
 
-# ---------- Copy composer files first (better cache) ----------
-COPY composer.json composer.lock ./
+# Copy application from build stage
+COPY --from=build /var/www/html /var/www/html
 
-# IMPORTANT FIX:
-# Don't run Laravel scripts during build (package:discover runs here and fails)
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-
-# ---------- Copy Project Files ----------
-COPY . .
-
-# ---------- Permissions ----------
+# Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# ---------- Entrypoint ----------
+# Entrypoint setup
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# ---------- Default Port ----------
+# Environment
 ENV PORT=4002
 EXPOSE 4002
 
-# ---------- Execution ----------
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-
-# JSON array CMD (fixes warning + proper signals)
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=4002"]
