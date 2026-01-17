@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_APP_PORT_EXTERNAL:-1236}:${DOCKER_APP_PORT_INTERNAL:-4002}"
-    env_file: [.env.docker]
+    env_file: [.env]
     depends_on:
       mysql:
         condition: service_healthy
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_MYSQL_PORT_EXTERNAL:-1234}:3306"
-    env_file: [.env.docker]
+    env_file: [.env]
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -58,7 +58,7 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_REDIS_PORT_EXTERNAL:-1235}:8001"
-    env_file: [.env.docker]
+    env_file: [.env]
     command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     healthcheck:
       test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
