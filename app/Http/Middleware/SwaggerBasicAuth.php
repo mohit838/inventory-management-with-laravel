@@ -17,26 +17,23 @@ class SwaggerBasicAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Only enforce in production (optional, but good for local dev)
-        // If you want it everywhere, remove the if check
-        if (app()->environment('production') || config('app.debug') === false) {
-            $user = $request->getUser();
-            $password = $request->getPassword();
+        $user = $request->getUser();
+        $password = $request->getPassword();
 
-            if ($user && $password) {
-                // Find superadmin
-                $superAdmin = User::role('superadmin')->first();
+        if ($user && $password) {
+            // Find user by email
+            $authenticatedUser = User::where('email', $user)->first();
 
-                if ($superAdmin && $user === $superAdmin->email && Hash::check($password, $superAdmin->password)) {
-                    return $next($request);
-                }
+            // Check if user exists, password is correct, and role is superadmin
+            if ($authenticatedUser && 
+                Hash::check($password, $authenticatedUser->password) && 
+                $authenticatedUser->role === User::ROLE_SUPERADMIN) {
+                return $next($request);
             }
-
-            return response('Unauthorized', 401, [
-                'WWW-Authenticate' => 'Basic realm="API Documentation"',
-            ]);
         }
 
-        return $next($request);
+        return response('Unauthorized', 401, [
+            'WWW-Authenticate' => 'Basic realm="API Documentation"',
+        ]);
     }
 }
