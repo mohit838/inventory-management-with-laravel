@@ -18,30 +18,36 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionSeeder::class);
 
         // Super Admin
-        $superadmin = User::factory()->create([
-            'name' => 'Super Admin User',
-            'email' => 'superadmin@test.com',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_SUPERADMIN,
-        ]);
-        $superadmin->assignRole('superadmin');
+        $superadmin = User::firstOrCreate(
+            ['email' => 'superadmin@test.com'],
+            [
+                'name' => 'Super Admin User',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_SUPERADMIN,
+            ]
+        );
+
 
         // Admin
-        $admin = User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@test.com',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_ADMIN,
-        ]);
-        $admin->assignRole('admin');
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@test.com'],
+            [
+                'name' => 'Admin User',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_ADMIN,
+            ]
+        );
+
 
         // Regular User
-        $user = User::factory()->create([
-            'name' => 'Regular User',
-            'email' => 'user@test.com',
-            'password' => bcrypt('password'),
-            'role' => User::ROLE_USER,
-        ]);
-        $user->assignRole('user');
+        $user = User::firstOrCreate(
+            ['email' => 'user@test.com'],
+            [
+                'name' => 'Regular User',
+                'password' => bcrypt('password'),
+                'role' => User::ROLE_USER,
+            ]
+        );
+
     }
 }
