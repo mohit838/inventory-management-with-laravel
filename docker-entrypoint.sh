@@ -16,9 +16,10 @@ do
   sleep 2
 done
 
+unset MYSQL_PWD
 echo "==> MySQL is ready!"
 
-# Optional: wait for Redis too (recommended if cache/queue uses redis)
+# Optional: wait for Redis too
 if [ -n "${REDIS_HOST}" ] && [ -n "${REDIS_PORT}" ] && [ -n "${REDIS_PASSWORD}" ]; then
   echo "==> Waiting for Redis at ${REDIS_HOST}:${REDIS_PORT} ..."
   until redis-cli -h "${REDIS_HOST}" -p "${REDIS_PORT}" -a "${REDIS_PASSWORD}" ping 2>/dev/null | grep -q PONG

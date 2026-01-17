@@ -1,14 +1,14 @@
 services:
   app:
     build:
-      context: ../..
+      context: .
       dockerfile: Dockerfile
     image: ${APP_IMAGE:-inventory-management}
     container_name: inventory_app
     restart: unless-stopped
 
     ports:
-      - "1236:4002"
+      - "${DOCKER_APP_PORT_EXTERNAL}:${DOCKER_APP_PORT_INTERNAL}"
 
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -18,16 +18,20 @@ services:
 
     environment:
       DB_HOST: host.docker.internal
-      DB_PORT: 1234
+      DB_PORT: ${DOCKER_MYSQL_PORT_EXTERNAL}
       REDIS_HOST: host.docker.internal
-      REDIS_PORT: 1235
+      REDIS_PORT: ${DOCKER_REDIS_PORT_EXTERNAL}
 
     volumes:
       - inventory_storage:/var/www/html/storage
       - inventory_bootstrap_cache:/var/www/html/bootstrap/cache
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4002 || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://127.0.0.1:${DOCKER_APP_PORT_INTERNAL} || exit 1",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

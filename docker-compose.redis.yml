@@ -1,0 +1,35 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    container_name: inventory_redis
+    restart: unless-stopped
+
+    # open port to host (outside access)
+    ports:
+      - "1235:6379"
+
+    # strong password (no $ and no #)
+    command:
+      [
+        "redis-server",
+        "--requirepass",
+        "",
+        "--appendonly",
+        "yes",
+      ]
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "redis-cli -a  ping | grep -q PONG",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  redis_data:

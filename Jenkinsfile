@@ -22,16 +22,15 @@ pipeline {
 
     stage('Resolve Git Commit') {
       steps {
-        sh 'git config --global --add safe.directory "$WORKSPACE"'
+        sh '''
+          set -e
+          git config --global --add safe.directory "$WORKSPACE"
+          echo "Commit full:  $(git rev-parse HEAD)"
+          echo "Commit short: $(git rev-parse --short=7 HEAD)"
+        '''
         script {
-          env.GIT_COMMIT_FULL = sh(
-            script: 'git rev-parse HEAD',
-            returnStdout: true
-          ).trim()
-          env.GIT_COMMIT_SHORT = sh(
-            script: 'git rev-parse --short=7 HEAD',
-            returnStdout: true
-          ).trim()
+          env.GIT_COMMIT_FULL = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+          env.GIT_COMMIT_SHORT = sh(script: 'git rev-parse --short=7 HEAD', returnStdout: true).trim()
         }
       }
     }
@@ -39,61 +38,62 @@ pipeline {
     stage('Prepare Docker') {
       steps {
         sh '''
+          set -e
           mkdir -p "$DOCKER_CONFIG"
           docker version
+
+          # Ensure docker compose exists (Compose V2 plugin)
+          if ! docker compose version >/dev/null 2>&1; then
+            echo "docker compose not found. Installing compose plugin..."
+            mkdir -p /usr/local/lib/docker/cli-plugins
+            apk add --no-cache curl
+            curl -fsSL -o /usr/local/lib/docker/cli-plugins/docker-compose \
+              https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64
+            chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+          fi
+
+          docker compose version
         '''
       }
     }
 
     stage('Load Environment File') {
       steps {
-        withCredentials([
-          file(credentialsId: 'laravel-inv', variable: 'ENV_FILE')
-        ]) {
+        withCredentials([file(credentialsId: 'laravel-inv', variable: 'ENV_FILE')]) {
           sh '''
-            echo "Loading environment file from Jenkins credentials"
+            set -e
             cp "$ENV_FILE" .env
             chmod 600 .env
-            echo "Env file placed at: $(pwd)/.env"
+            echo "Loaded .env to $(pwd)/.env"
           '''
         }
       }
     }
 
-    stage('Build Docker Images') {
-      parallel {
-        stage('Inventory Service (Laravel)') {
-          steps {
-            sh '''
-              echo "Building image ${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}"
-              docker build -t ${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT} .
-            '''
-          }
-        }
-      }
-    }
-
-    stage('Prepare Deployment') {
+    stage('Build Docker Image') {
       steps {
         sh '''
-          echo "Cleaning host-side caches and logs..."
-          rm -f bootstrap/cache/*.php || true
-          rm -f storage/logs/*.log || true
-          rm -rf storage/framework/views/*.php || true
+          set -e
+          echo "Building image ${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}"
+          docker build -t ${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT} .
         '''
       }
     }
 
-    stage('Deploy Latest Containers') {
+    stage('Deploy (Compose)') {
       steps {
         sh '''
-          echo "Deploying commit ${GIT_COMMIT_SHORT}"
+          set -e
           export APP_IMAGE=${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}
 
-          # IMPORTANT: force compose to use the root .env we copied
-          docker compose --env-file .env -f infra/production/docker-compose.yml up -d --remove-orphans
+          # Bring up MySQL + Redis (if you run them separately, keep these two)
+          # docker compose --env-file .env -f docker-compose.mysql.yml up -d
+          # docker compose --env-file .env -f docker-compose.redis.yml up -d
 
-          echo "Verifying deployment..."
+          # Bring up app
+          docker compose --env-file .env -f docker-compose.yml up -d --remove-orphans
+
+          echo "Containers running:"
           docker ps
         '''
       }
@@ -101,16 +101,31 @@ pipeline {
   }
 
   post {
+    failure {
+      echo "Deployment failed. Showing logs..."
+      sh '''
+        set +e
+        docker ps
+        echo "=== App logs (tail) ==="
+        docker logs --tail=200 inventory_app || true
+        echo "=== MySQL logs (tail) ==="
+        docker logs --tail=200 inventory_mysql || true
+        echo "=== Redis logs (tail) ==="
+        docker logs --tail=200 inventory_redis || true
+      '''
+    }
+
     always {
-      echo "Cleaning up workspace and unused Docker images..."
-      sh 'docker image prune -af --filter "until=1h"'
+      echo "Cleanup..."
+      sh '''
+        set +e
+        docker image prune -af --filter "until=24h" || true
+      '''
       cleanWs()
     }
+
     success {
       echo "Deployment successful (${GIT_COMMIT_SHORT})"
-    }
-    failure {
-      echo "Deployment failed (${GIT_COMMIT_SHORT})"
     }
   }
 }
