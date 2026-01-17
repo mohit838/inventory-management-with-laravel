@@ -88,12 +88,16 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
         if (! $user || ! Hash::check($request->password, $user->password)) {
+            \Illuminate\Support\Facades\Log::warning("Login failed for email: {$request->email}");
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         if (! $user->active) {
+            \Illuminate\Support\Facades\Log::warning("Inactive user login attempt: {$request->email}");
             return response()->json(['message' => 'Account is inactive'], 403);
         }
+
+        \Illuminate\Support\Facades\Log::info("User logged in: {$user->id}");
 
         $access = $this->jwt->generateAccessToken($user->id, ['role' => $user->role]);
         $refresh = $this->jwt->createRefreshToken($user->id);

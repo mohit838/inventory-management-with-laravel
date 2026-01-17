@@ -49,13 +49,23 @@ class MinioService
                 // 3. Storage interaction
                 /** @var \Illuminate\Contracts\Filesystem\Cloud $storage */
                 $storage = Storage::disk($disk);
-                $storage->put($filename, (string) $encoded);
+                
+                if (! $storage->put($filename, (string) $encoded)) {
+                    throw new Exception("Storage put operation failed for path: {$filename}");
+                }
 
-                // 4. Return appropriate path or URL
-                return $disk === 'minio' ? $storage->url($filename) : $filename;
+                // Temporary URL check
+                if ($disk === 'minio') {
+                    $url = $storage->url($filename);
+                } else {
+                    $url = $filename; // Store relative path for private
+                }
+                
+                Log::info("Image uploaded successfully: {$filename}");
+                return $url;
 
             } catch (Exception $e) {
-                Log::error("MinIO Upload Failed on disk [{$disk}]: " . $e->getMessage());
+                Log::error("MinIO Upload Error: " . $e->getMessage());
                 throw $e; // Rethrow for retry() to catch
             }
         }, 100);

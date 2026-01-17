@@ -15,7 +15,11 @@ class ProductController extends Controller
 {
     use PaginationTrait;
 
-    public function __construct(protected ProductRepository $repo, protected \App\Services\MinioService $minio) {}
+    public function __construct(
+        protected ProductRepository $repo,
+        protected \App\Services\MinioService $minio,
+        protected \App\Services\AuditService $audit
+    ) {}
 
     #[OA\Get(
         path: '/api/v1/products',
@@ -88,6 +92,9 @@ class ProductController extends Controller
 
         $item = $this->repo->create($data);
 
+        \Illuminate\Support\Facades\Log::info("Product created: {$item->id}");
+        $this->audit->log('product.created', "Created product '{$item->name}' (ID: {$item->id})", $item);
+
         return response()->json(['data' => $this->formatProduct($item)], 201);
     }
 
@@ -151,6 +158,9 @@ class ProductController extends Controller
 
         $item = $this->repo->update((int) $id, $data);
 
+        \Illuminate\Support\Facades\Log::info("Product updated: {$id}");
+        $this->audit->log('product.updated', "Updated product '{$item->name}' (ID: {$item->id})", $item);
+
         return response()->json(['data' => $this->formatProduct($item)]);
     }
 
@@ -206,6 +216,9 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $this->repo->delete((int) $id);
+
+        \Illuminate\Support\Facades\Log::info("Product deleted: {$id}");
+        $this->audit->log('product.deleted', "Deleted product ID: {$id}");
 
         return response()->json(null, 204);
     }

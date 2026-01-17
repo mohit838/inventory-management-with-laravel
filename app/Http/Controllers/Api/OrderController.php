@@ -10,7 +10,10 @@ use OpenApi\Attributes as OA;
 #[OA\Tag(name: 'Orders', description: 'API Endpoints for Orders')]
 class OrderController extends Controller
 {
-    public function __construct(protected OrderService $service) {}
+    public function __construct(
+        protected OrderService $service,
+        protected \App\Services\AuditService $audit
+    ) {}
 
     #[OA\Post(
         path: '/api/v1/orders',
@@ -48,8 +51,12 @@ class OrderController extends Controller
         try {
             $order = $this->service->createOrder($request->validated(), $request->user() ? $request->user()->id : 0);
 
+            \Illuminate\Support\Facades\Log::info("Order created: {$order->id}");
+            $this->audit->log('order.created', "Created Order #{$order->id} for {$order->customer_name}", $order);
+
             return response()->json(['data' => $this->formatOrder($order)], 201);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Order creation failed: " . $e->getMessage());
             return response()->json(['message' => $e->getMessage()], 400);
         }
     }
@@ -70,9 +77,12 @@ class OrderController extends Controller
     {
         try {
             $invoice = $this->service->generateInvoice($id);
+            
+            \Illuminate\Support\Facades\Log::info("Invoice generated for Order: {$id}");
 
             return response()->json(['data' => $invoice]);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Invoice generation failed: " . $e->getMessage());
             return response()->json(['message' => 'Invoice generation failed'], 500);
         }
     }

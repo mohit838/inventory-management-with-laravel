@@ -63,5 +63,8 @@ Route::prefix('v1')->group(function () {
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
+        // Audit Logs
+        Route::get('audit-logs', [\App\Http\Controllers\Api\AuditLogController::class, 'index']);
     });
 });
