@@ -77,7 +77,9 @@
 ├── bootstrap
 │   ├── app.php
 │   ├── cache
+│   │   ├── config.php
 │   │   ├── packages.php
+│   │   ├── routes-v7.php
 │   │   └── services.php
 │   └── providers.php
 ├── composer.json
@@ -120,9 +122,14 @@
 │   └── mysql
 │       └── init
 │           └── 00-init.sql
-├── docker-compose.yml
 ├── docker-entrypoint.sh
 ├── Dockerfile
+├── infra
+│   ├── local
+│   │   └── docker-compose.yml
+│   ├── production
+│   │   └── docker-compose.yml
+│   └── README.md
 ├── Jenkinsfile
 ├── package.json
 ├── phpunit.xml
@@ -166,7 +173,69 @@
 │       │                   └── products
 │       │                       └── 696b1646e01c1.webp
 │       └── views
-│           └── 74ea6dd425d547f34c905292bd19b92b.php
+│           ├── 06b4f63e298210bfe41ecdbaa73485b5.php
+│           ├── 07ed10a3c0b628a74c27154a036bfeb3.php
+│           ├── 085334df26b8595495940fd7385e559e.php
+│           ├── 12bb210f67a2c62483bf75aa16b1541f.php
+│           ├── 132b834a0a58f1e712afb341f8622879.php
+│           ├── 15b9b7d1345c7e6956ac4c405beabb9c.php
+│           ├── 19d1ca22cd8db231f88e0685e9c3a20e.php
+│           ├── 1d80ab6b39c4fd66143ba321dcebb83a.php
+│           ├── 1f028767712d3d8241d1ade5f4f26828.php
+│           ├── 21587a1313e87e6b1ada8380742ba155.php
+│           ├── 275c7c02e2528e6029079c885e2d2418.php
+│           ├── 2c7faddb9ca937fe56ecc10cf5019fba.php
+│           ├── 351fa3732451ab1953b9be4fa24f26f1.php
+│           ├── 3d0523b3fb47ae1aaec16560d5db3ff6.php
+│           ├── 3e065047cb18572d6616d6957ea334cf.php
+│           ├── 4de0c9e88eac9397618f59256edb340b.php
+│           ├── 4ee3ab6db1fa8b9c29091a68e99cacf9.php
+│           ├── 5c2001e939204ec0b7ec56c9a9f31d3d.php
+│           ├── 64038343b8d1372f1cfc4ffd6b954d3f.php
+│           ├── 642dcaa75a522003dacd1283a1f4aba4.php
+│           ├── 659dbe8cffc0ee094a859d2a391969b0.php
+│           ├── 6ed7626a600a97bbbcf3df3de0ac17ff.php
+│           ├── 7694df8c279c9892a44ab70ccc17d192.php
+│           ├── 7deaf0499ff9eabe9358705adbcb993a.php
+│           ├── 81562836f64b7f921f31ffdc240d30c0.php
+│           ├── 82017f83d4278d687d51e3e105479f2d.php
+│           ├── 8666d6e6ce080dbc6f2f4d6011db249d.php
+│           ├── 86f71730de75819f048bd1898204cd53.php
+│           ├── 88457334e02f6a538b3bf69643b82d1a.php
+│           ├── 8ccb45c1a134a6408ad43524fb6a1665.php
+│           ├── 8d10bd467cf09913e6b556ef735bb9e5.php
+│           ├── 8ff6da461b29adf32cbaf0791500e236.php
+│           ├── 9065e79a479fcdb86f244f50aa1f572b.php
+│           ├── 90deeaf9f2dcac7abfde3cc13e37ffd7.php
+│           ├── 95c7bcc88a20146803ee575eb4d7d59b.php
+│           ├── a15b5670fe81fa7c104d47953f0a0948.php
+│           ├── a2eb6b44e1f39b592cc05a03c5f466ab.php
+│           ├── a49ec6e1e2f3edad67f479784ea2fc7a.php
+│           ├── a6e52cf984c8ff2eb5b72474eb5d3632.php
+│           ├── aac1a4197059d57ac3fa906d63411b44.php
+│           ├── b3bf3a06684b59be09e39dd9c22d9f0c.php
+│           ├── b450fd7632b0a1c9c37ac768dd2d308f.php
+│           ├── bd5df4af7aa6519e61a16b0135794c6d.php
+│           ├── bfb95f08f5507d145605961ebeaa83f9.php
+│           ├── c13ca04fd31377d6c08c5c0f32331c91.php
+│           ├── c289c870d436e88f1c8af34e764052d7.php
+│           ├── c6e4ea11ca7454f87ab86a2864a7cc06.php
+│           ├── cbd3419bebdb8e30938c6952927bddbb.php
+│           ├── d028a4887c85c25f7b1d6f3b0d730412.php
+│           ├── d0ac212c9150f925e600ff0828e4ba83.php
+│           ├── d0e99533da1ed96fad8beab28f583aec.php
+│           ├── d2c390920d779c60803b55eb349a629a.php
+│           ├── d9363b80a37ffc526f432334a88dbd27.php
+│           ├── dd310000961f2d208873a737c27d849a.php
+│           ├── e406f906bda109fd9547abbc0d2447c8.php
+│           ├── e94544fc25cd8f3b9288bba65c0eafb8.php
+│           ├── eceb759138360a2126cbd0ec255ba7be.php
+│           ├── efc373a93e20983a2d0ca7e33d73f169.php
+│           ├── f473ab1255a6232ac52d2a2fb8ebae6c.php
+│           ├── f6f4474dc929d536862052edff8d5fd3.php
+│           ├── f88f0d9a8e2f1cc80cecccd60df508eb.php
+│           ├── fa361207f9dce908fd6d651e2ade7345.php
+│           └── fe2a500feedb563018dd9adad81bf65d.php
 ├── tests
 │   ├── Feature
 │   │   ├── AlertFlowTest.php
@@ -182,4 +251,4 @@
 │       └── ExampleTest.php
 └── vite.config.js
 
-55 directories, 127 files
+58 directories, 193 files

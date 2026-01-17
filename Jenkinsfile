@@ -54,6 +54,7 @@ pipeline {
             echo "Loading environment file from Jenkins credentials"
             cp "$ENV_FILE" .env
             chmod 600 .env
+            echo "Env file placed at: $(pwd)/.env"
           '''
         }
       }
@@ -76,9 +77,9 @@ pipeline {
       steps {
         sh '''
           echo "Cleaning host-side caches and logs..."
-          rm -f bootstrap/cache/*.php
-          rm -f storage/logs/*.log
-          rm -rf storage/framework/views/*.php
+          rm -f bootstrap/cache/*.php || true
+          rm -f storage/logs/*.log || true
+          rm -rf storage/framework/views/*.php || true
         '''
       }
     }
@@ -89,23 +90,20 @@ pipeline {
           echo "Deploying commit ${GIT_COMMIT_SHORT}"
           export APP_IMAGE=${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}
 
-          # Using --remove-orphans ensures old containers not in the new compose file are removed
-          docker compose -f infra/production/docker-compose.yml up -d --remove-orphans
+          # IMPORTANT: force compose to use the root .env we copied
+          docker compose --env-file .env -f infra/production/docker-compose.yml up -d --remove-orphans
 
           echo "Verifying deployment..."
           docker ps
         '''
       }
     }
-
-
-
   }
 
   post {
     always {
       echo "Cleaning up workspace and unused Docker images..."
-      sh 'docker image prune -af --filter "until=1h"' // Remove all unused images older than 24h
+      sh 'docker image prune -af --filter "until=1h"'
       cleanWs()
     }
     success {
