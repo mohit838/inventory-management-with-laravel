@@ -379,3 +379,10 @@ docker network create inventory-net || true
 docker network connect inventory-net inventory_mysql || true
 docker network connect inventory-net inventory_redis || true
 ```
+
+## Build Img Only
+
+```bash
+docker build -t mohit838/img:latest .
+docker push mohit838/img:latest
+```
