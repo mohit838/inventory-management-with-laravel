@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PublicUploadResource;
 use App\Services\MinioService;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -42,6 +41,10 @@ class PublicUploadController extends Controller
 
         $url = $this->minio->uploadPublic($request->file('image'));
 
-        return (new PublicUploadResource($url))->response()->setStatusCode(201);
+        return response()->json([
+            'data' => [
+                'url' => $url
+            ]
+        ], 201);
     }
 }

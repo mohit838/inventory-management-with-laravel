@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderStoreRequest;
-use App\Http\Resources\OrderResource;
 use App\Services\OrderService;
 use OpenApi\Attributes as OA;
 
@@ -49,7 +48,7 @@ class OrderController extends Controller
         try {
             $order = $this->service->createOrder($request->validated(), $request->user() ? $request->user()->id : 0);
 
-            return (new OrderResource($order))->response()->setStatusCode(201);
+            return response()->json(['data' => $this->formatOrder($order)], 201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
@@ -76,5 +75,27 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Invoice generation failed'], 500);
         }
+    }
+
+    private function formatOrder($order)
+    {
+        return [
+            'id' => $order->id,
+            'customer_name' => $order->customer_name,
+            'total_amount' => (float) $order->total_amount,
+            'status' => $order->status,
+            'payment_method' => $order->payment_method,
+            'payment_status' => $order->payment_status,
+            'items' => $order->relationLoaded('items') ? $order->items->map(function($item) {
+                return [
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product->name ?? 'Deleted Product',
+                    'quantity' => (int) $item->quantity,
+                    'unit_price' => (float) $item->unit_price,
+                    'total_price' => (float) $item->total_price,
+                ];
+            }) : [],
+            'created_at' => $order->created_at->toDateTimeString(),
+        ];
     }
 }

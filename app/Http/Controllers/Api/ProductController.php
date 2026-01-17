@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
-use App\Http\Resources\ProductResource;
 use App\Repositories\ProductRepository;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
@@ -42,8 +41,12 @@ class ProductController extends Controller
             $items = $this->repo->paginate($perPage, ['*'], ['category', 'subcategory']);
         }
 
-        return ProductResource::collection($items)
-            ->additional(['meta' => $this->formatPagination($items)]);
+        return response()->json([
+            'data' => $items->getCollection()->transform(function($item) {
+                return $this->formatProduct($item);
+            }),
+            'meta' => $this->formatPagination($items)
+        ]);
     }
 
     #[OA\Post(
@@ -85,7 +88,7 @@ class ProductController extends Controller
 
         $item = $this->repo->create($data);
 
-        return (new ProductResource($item))->response()->setStatusCode(201);
+        return response()->json(['data' => $this->formatProduct($item)], 201);
     }
 
     #[OA\Get(
@@ -104,7 +107,7 @@ class ProductController extends Controller
     {
         $item = $this->repo->findWithInactive((int) $id);
 
-        return new ProductResource($item);
+        return response()->json(['data' => $this->formatProduct($item)]);
     }
 
     #[OA\Post(
@@ -148,7 +151,7 @@ class ProductController extends Controller
 
         $item = $this->repo->update((int) $id, $data);
 
-        return new ProductResource($item);
+        return response()->json(['data' => $this->formatProduct($item)]);
     }
 
     #[OA\Post(
@@ -167,7 +170,25 @@ class ProductController extends Controller
     {
         $item = $this->repo->toggleActive((int) $id);
 
-        return new ProductResource($item);
+        return response()->json(['data' => $this->formatProduct($item)]);
+    }
+
+    private function formatProduct($item)
+    {
+        return [
+            'id' => $item->id,
+            'category_id' => $item->category_id,
+            'subcategory_id' => $item->subcategory_id,
+            'name' => $item->name,
+            'sku' => $item->sku,
+            'description' => $item->description,
+            'image_url' => $item->image_url ? \Illuminate\Support\Facades\Storage::disk('minio_private')->temporaryUrl($item->image_url, now()->addMinutes(60)) : null,
+            'price' => (float) $item->price,
+            'quantity' => (int) $item->quantity,
+            'active' => (bool) $item->active,
+            'created_at' => $item->created_at?->toDateTimeString(),
+            'updated_at' => $item->updated_at?->toDateTimeString(),
+        ];
     }
 
     #[OA\Delete(

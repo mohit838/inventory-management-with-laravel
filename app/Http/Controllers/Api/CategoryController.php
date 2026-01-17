@@ -3,9 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CategoryStoreRequest;
-use App\Http\Requests\CategoryUpdateRequest;
-use App\Http\Resources\CategoryResource;
 use App\Repositories\CategoryRepository;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
@@ -42,8 +39,12 @@ class CategoryController extends Controller
             $items = $this->repo->paginate($perPage, ['*'], ['subcategories']);
         }
 
-        return CategoryResource::collection($items)
-            ->additional(['meta' => $this->formatPagination($items)]);
+        return response()->json([
+            'data' => $items->getCollection()->transform(function($item) {
+                return $this->formatCategory($item);
+            }),
+            'meta' => $this->formatPagination($items)
+        ]);
     }
 
     #[OA\Post(
@@ -65,11 +66,18 @@ class CategoryController extends Controller
             new OA\Response(response: 201, description: 'Category created'),
         ]
     )]
-    public function store(CategoryStoreRequest $request)
+    public function store(Request $request)
     {
-        $item = $this->repo->create($request->validated());
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:categories,slug',
+            'description' => 'nullable|string',
+            'active' => 'sometimes|boolean',
+        ]);
 
-        return (new CategoryResource($item))->response()->setStatusCode(201);
+        $item = $this->repo->create($data);
+
+        return response()->json(['data' => $this->formatCategory($item)], 201);
     }
 
     #[OA\Get(
@@ -88,7 +96,7 @@ class CategoryController extends Controller
     {
         $item = $this->repo->findWithInactive($id);
 
-        return new CategoryResource($item);
+        return response()->json(['data' => $this->formatCategory($item)]);
     }
 
     #[OA\Get(
@@ -102,7 +110,16 @@ class CategoryController extends Controller
     )]
     public function dropdown()
     {
-        return CategoryResource::collection($this->repo->all(['id', 'name']));
+        $items = $this->repo->all(['id', 'name']);
+        
+        return response()->json([
+            'data' => $items->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name
+                ];
+            })
+        ]);
     }
 
     #[OA\Put(
@@ -126,11 +143,31 @@ class CategoryController extends Controller
             new OA\Response(response: 200, description: 'Category updated'),
         ]
     )]
-    public function update(CategoryUpdateRequest $request, $id)
+    public function update(Request $request, $id)
     {
-        $item = $this->repo->update((int) $id, $request->validated());
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'slug' => 'sometimes|string|max:255|unique:categories,slug,' . $id,
+            'description' => 'nullable|string',
+            'active' => 'sometimes|boolean',
+        ]);
 
-        return new CategoryResource($item);
+        $item = $this->repo->update((int) $id, $data);
+
+        return response()->json(['data' => $this->formatCategory($item)]);
+    }
+
+    private function formatCategory($item)
+    {
+        return [
+            'id' => $item->id,
+            'name' => $item->name,
+            'slug' => $item->slug,
+            'description' => $item->description,
+            'active' => (bool) $item->active,
+            'created_at' => $item->created_at?->toDateTimeString(),
+            'updated_at' => $item->updated_at?->toDateTimeString(),
+        ];
     }
 
     #[OA\Post(
@@ -149,7 +186,7 @@ class CategoryController extends Controller
     {
         $item = $this->repo->toggleActive((int) $id);
 
-        return new CategoryResource($item);
+        return response()->json(['data' => $this->formatCategory($item)]);
     }
 
     #[OA\Delete(

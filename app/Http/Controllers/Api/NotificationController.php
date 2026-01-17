@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\NotificationResource;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -23,7 +22,23 @@ class NotificationController extends Controller
     {
         $notifications = $request->user()->notifications()->paginate(20);
 
-        return NotificationResource::collection($notifications);
+        return response()->json([
+            'data' => $notifications->getCollection()->transform(function($n) {
+                return [
+                    'id' => $n->id,
+                    'type' => $n->type,
+                    'data' => $n->data,
+                    'read_at' => $n->read_at?->toDateTimeString(),
+                    'created_at' => $n->created_at?->toDateTimeString(),
+                ];
+            }),
+            'meta' => [
+                'current_page' => $notifications->currentPage(),
+                'last_page' => $notifications->lastPage(),
+                'per_page' => $notifications->perPage(),
+                'total' => $notifications->total(),
+            ]
+        ]);
     }
 
     #[OA\Patch(
@@ -43,7 +58,15 @@ class NotificationController extends Controller
         $notification = $request->user()->notifications()->findOrFail($id);
         $notification->markAsRead();
 
-        return new NotificationResource($notification);
+        return response()->json([
+            'data' => [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'data' => $notification->data,
+                'read_at' => $notification->read_at?->toDateTimeString(),
+                'created_at' => $notification->created_at?->toDateTimeString(),
+            ]
+        ]);
     }
 
     #[OA\Patch(

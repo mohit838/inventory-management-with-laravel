@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\JwtService;
@@ -43,8 +41,14 @@ class AuthController extends Controller
             new OA\Response(response: 201, description: 'User created'),
         ]
     )]
-    public function register(RegisterRequest $request)
+    public function register(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
         // Force role to user for public registration
         $user = User::create([
             'name' => $request->name,
@@ -75,8 +79,13 @@ class AuthController extends Controller
             new OA\Response(response: 200, description: 'Successful login'),
         ]
     )]
-    public function login(LoginRequest $request)
+    public function login(Request $request)
     {
+        $request->validate([
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
+
         $user = User::where('email', $request->email)->first();
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);

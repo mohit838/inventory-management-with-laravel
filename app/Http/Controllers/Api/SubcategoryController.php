@@ -3,9 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SubcategoryStoreRequest;
-use App\Http\Requests\SubcategoryUpdateRequest;
-use App\Http\Resources\SubcategoryResource;
 use App\Repositories\SubcategoryRepository;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
@@ -42,8 +39,12 @@ class SubcategoryController extends Controller
             $items = $this->repo->paginate($perPage, ['*'], ['category']);
         }
 
-        return SubcategoryResource::collection($items)
-            ->additional(['meta' => $this->formatPagination($items)]);
+        return response()->json([
+            'data' => $items->getCollection()->transform(function($item) {
+                return $this->formatSubcategory($item);
+            }),
+            'meta' => $this->formatPagination($items)
+        ]);
     }
 
     #[OA\Post(
@@ -67,11 +68,18 @@ class SubcategoryController extends Controller
             new OA\Response(response: 201, description: 'Subcategory created'),
         ]
     )]
-    public function store(SubcategoryStoreRequest $request)
+    public function store(Request $request)
     {
-        $item = $this->repo->create($request->validated());
+        $data = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:subcategories,slug',
+            'active' => 'sometimes|boolean',
+        ]);
 
-        return (new SubcategoryResource($item))->response()->setStatusCode(201);
+        $item = $this->repo->create($data);
+
+        return response()->json(['data' => $this->formatSubcategory($item)], 201);
     }
 
     #[OA\Get(
@@ -90,7 +98,7 @@ class SubcategoryController extends Controller
     {
         $item = $this->repo->findWithInactive((int) $id);
 
-        return new SubcategoryResource($item);
+        return response()->json(['data' => $this->formatSubcategory($item)]);
     }
 
     #[OA\Get(
@@ -104,7 +112,17 @@ class SubcategoryController extends Controller
     )]
     public function dropdown()
     {
-        return SubcategoryResource::collection($this->repo->all());
+        $items = $this->repo->all();
+        
+        return response()->json([
+            'data' => $items->map(function($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'category_id' => $item->category_id
+                ];
+            })
+        ]);
     }
 
     #[OA\Put(
@@ -130,11 +148,35 @@ class SubcategoryController extends Controller
             new OA\Response(response: 200, description: 'Subcategory updated'),
         ]
     )]
-    public function update(SubcategoryUpdateRequest $request, $id)
+    public function update(Request $request, $id)
     {
-        $item = $this->repo->update((int) $id, $request->validated());
+        $data = $request->validate([
+            'category_id' => 'sometimes|exists:categories,id',
+            'name' => 'sometimes|string|max:255',
+            'slug' => 'sometimes|string|max:255|unique:subcategories,slug,' . $id,
+            'active' => 'sometimes|boolean',
+        ]);
 
-        return new SubcategoryResource($item);
+        $item = $this->repo->update((int) $id, $data);
+
+        return response()->json(['data' => $this->formatSubcategory($item)]);
+    }
+
+    private function formatSubcategory($item)
+    {
+        return [
+            'id' => $item->id,
+            'category_id' => $item->category_id,
+            'name' => $item->name,
+            'slug' => $item->slug,
+            'active' => (bool)$item->active,
+            'category' => $item->relationLoaded('category') ? [
+                'id' => $item->category->id,
+                'name' => $item->category->name
+            ] : null,
+            'created_at' => $item->created_at?->toDateTimeString(),
+            'updated_at' => $item->updated_at?->toDateTimeString(),
+        ];
     }
 
     #[OA\Post(
@@ -153,7 +195,7 @@ class SubcategoryController extends Controller
     {
         $item = $this->repo->toggleActive((int) $id);
 
-        return new SubcategoryResource($item);
+        return response()->json(['data' => $this->formatSubcategory($item)]);
     }
 
     #[OA\Delete(

@@ -4,9 +4,9 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Interfaces\InvoiceGeneratorInterface;
 use App\Models\Product;
 use App\Repositories\OrderRepository;
+use App\Services\InvoiceService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +14,7 @@ class OrderService
 {
     public function __construct(
         protected OrderRepository $orderRepo,
-        protected InvoiceGeneratorInterface $invoiceGenerator
+        protected InvoiceService $invoiceGenerator
     ) {}
 
     /**

@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-use App\Interfaces\InvoiceGeneratorInterface;
 use App\Models\Order;
 
-class BasicJsonInvoiceGenerator implements InvoiceGeneratorInterface
+class InvoiceService
 {
     public function generate(Order $order): array
     {
