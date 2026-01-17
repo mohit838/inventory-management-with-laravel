@@ -7,10 +7,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class DashboardSummaryResource extends JsonResource
 {
-    /**
-     * @param Request $request
-     * @return array
-     */
     public function toArray(Request $request): array
     {
         // $this->resource is the array returned by AnalyticsService

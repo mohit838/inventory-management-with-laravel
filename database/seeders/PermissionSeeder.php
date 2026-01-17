@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class PermissionSeeder extends Seeder
 {
@@ -33,15 +31,15 @@ class PermissionSeeder extends Seeder
                 \App\Models\Permission::firstOrCreate(
                     ['slug' => $slug],
                     [
-                        'name' => ucfirst($action) . ' ' . ucfirst($module),
+                        'name' => ucfirst($action).' '.ucfirst($module),
                         'group' => $module,
-                        'guard_name' => 'web'
+                        'guard_name' => 'web',
                     ]
                 );
             }
         }
 
-        // We still create roles in Spatie's table for compatibility if needed, 
+        // We still create roles in Spatie's table for compatibility if needed,
         // but our primary check is now via HasPermissions trait and slugs.
     }
 }

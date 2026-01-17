@@ -2,30 +2,29 @@
 
 namespace App\Services;
 
-use App\Interfaces\AnalyticsServiceInterface;
-use App\Models\Product;
-use App\Models\Order;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use Illuminate\Support\Facades\DB;
+use App\Interfaces\AnalyticsServiceInterface;
 use App\Interfaces\CacheServiceInterface;
+use App\Models\Order;
+use App\Models\Product;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class SqlAnalyticsService implements AnalyticsServiceInterface
 {
-    public function __construct(protected CacheServiceInterface $cache)
-    {}
+    public function __construct(protected CacheServiceInterface $cache) {}
 
     public function getSummary(int $userId, bool $includeRevenue = true): array
     {
         // Cache Key depends on includeRevenue
-        $cacheKey = "dashboard_summary_{$userId}_" . ($includeRevenue ? 'rev' : 'norev');
+        $cacheKey = "dashboard_summary_{$userId}_".($includeRevenue ? 'rev' : 'norev');
 
         // Cache for 5 minutes to avoid heavy DB hits on refresh
-        return $this->cache->remember($cacheKey, 300, function () use ($userId, $includeRevenue) {
-            
+        return $this->cache->remember($cacheKey, 300, function () use ($includeRevenue) {
+
             $totalProducts = Product::count();
-            
+
             // Dynamic Low Stock: Product > Category > Global(10)
             // Using join to get category threshold.
             $lowStock = DB::table('products')
@@ -36,16 +35,16 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
                 ->count();
 
             $outStock = Product::where('quantity', '=', 0)->count();
-            
+
             $totalOrders = Order::count();
-            
+
             $totalRevenue = null;
             if ($includeRevenue) {
                 $totalRevenue = Order::where('payment_status', PaymentStatus::PAID)
                     ->where('status', '!=', OrderStatus::CANCELLED)
                     ->sum('total_amount');
             }
-            
+
             $pendingOrders = Order::where('status', OrderStatus::PENDING)->count();
 
             $topCategories = DB::table('order_items')
@@ -60,7 +59,7 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
 
             return [
                 'total_products' => $totalProducts,
-                'low_stock_count' => $lowStock, 
+                'low_stock_count' => $lowStock,
                 'out_of_stock_count' => $outStock,
                 'total_orders' => $totalOrders,
                 'total_revenue' => $includeRevenue ? (float) ($totalRevenue ?? 0) : null,
@@ -74,40 +73,40 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
     {
         // Cache for 10 minutes
         return $this->cache->remember("sales_chart_{$userId}_{$period}", 600, function () use ($period) {
-            
+
             $query = Order::where('payment_status', PaymentStatus::PAID)
                 ->where('status', '!=', OrderStatus::CANCELLED);
-            
+
             if ($period === 'monthly') {
                 $start = Carbon::now()->startOfYear();
                 $query->where('created_at', '>=', $start);
-                
+
                 $orders = $query->get(['total_amount', 'created_at']);
-                
+
                 $grouped = $orders->groupBy(function ($val) {
                     return Carbon::parse($val->created_at)->format('M'); // Jan, Feb
                 });
-                
+
                 // Ensure all months exist
                 $labels = [];
                 $values = [];
                 $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                
+
                 foreach ($months as $month) {
                     $labels[] = $month;
                     $values[] = isset($grouped[$month]) ? $grouped[$month]->sum('total_amount') : 0;
                 }
-                
+
                 return [
                     'labels' => $labels,
-                    'values' => $values
+                    'values' => $values,
                 ];
             }
-            
+
             // Default empty
             return [
                 'labels' => [],
-                'data' => []
+                'data' => [],
             ];
         });
     }

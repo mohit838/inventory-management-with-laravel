@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\RefreshToken;
+use Carbon\Carbon;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use App\Models\RefreshToken;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class JwtService
 {
@@ -44,6 +44,7 @@ class JwtService
 
         // return model with plain token attached for client
         $rt->plain_token = $plain;
+
         return $rt;
     }
 

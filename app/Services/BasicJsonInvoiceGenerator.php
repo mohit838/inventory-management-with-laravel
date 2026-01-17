@@ -10,7 +10,7 @@ class BasicJsonInvoiceGenerator implements InvoiceGeneratorInterface
     public function generate(Order $order): array
     {
         return [
-            'invoice_number' => 'INV-' . str_pad($order->id, 6, '0', STR_PAD_LEFT),
+            'invoice_number' => 'INV-'.str_pad($order->id, 6, '0', STR_PAD_LEFT),
             'date' => $order->created_at->toIso8601String(),
             'customer' => [
                 'name' => $order->customer_name,

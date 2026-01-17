@@ -17,9 +17,9 @@ class CheckPermission
     {
         $user = $request->user();
 
-        if (!$user || !$user->hasPermissionTo($permission)) {
+        if (! $user || ! $user->hasPermissionTo($permission)) {
             // For SaaS, maybe just 403.
-            return response()->json(['message' => 'Unauthorized. Missing permission: ' . $permission], 403);
+            return response()->json(['message' => 'Unauthorized. Missing permission: '.$permission], 403);
         }
 
         return $next($request);

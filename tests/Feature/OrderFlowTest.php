@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Product;
-use App\Models\Category;
 
 class OrderFlowTest extends TestCase
 {
@@ -23,7 +23,7 @@ class OrderFlowTest extends TestCase
         $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
         $cat = Category::create(['name' => 'C', 'slug' => 'c', 'active' => 1]);
         $product = Product::create([
@@ -32,7 +32,7 @@ class OrderFlowTest extends TestCase
             'sku' => 'PHONE-001',
             'price' => 1000,
             'quantity' => 10,
-            'active' => 1
+            'active' => 1,
         ]);
 
         $response = $this->postJson('/api/v1/orders', [
@@ -40,15 +40,15 @@ class OrderFlowTest extends TestCase
             'customer_email' => 'john@example.com',
             'payment_method' => 'cod', // Enum case-sensitive? Controller uses Enum(PaymentMethod::class) which expects 'cod' or 'online' values.
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2]
-            ]
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
         ], $headers);
 
         $response->assertStatus(201);
-        
+
         // Check Stock
         $this->assertDatabaseHas('products', ['id' => $product->id, 'quantity' => 8]);
-        
+
         // Check Order
         $this->assertDatabaseHas('orders', ['total_amount' => 2000, 'customer_name' => 'John Doe']);
     }
@@ -58,7 +58,7 @@ class OrderFlowTest extends TestCase
         $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
         $cat = Category::create(['name' => 'C', 'slug' => 'c', 'active' => 1]);
         $product = Product::create([
@@ -67,15 +67,15 @@ class OrderFlowTest extends TestCase
             'sku' => 'LAPTOP-001',
             'price' => 5000,
             'quantity' => 1,
-            'active' => 1
+            'active' => 1,
         ]);
 
         $response = $this->postJson('/api/v1/orders', [
             'customer_name' => 'Jane',
             'payment_method' => 'online',
             'items' => [
-                ['product_id' => $product->id, 'quantity' => 2]
-            ]
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
         ], $headers);
 
         $response->assertStatus(400); // Service throws exception, Controller catches and returns 400
@@ -87,8 +87,8 @@ class OrderFlowTest extends TestCase
         $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
-        
+        $headers = ['Authorization' => 'Bearer '.$token];
+
         $cat = Category::create(['name' => 'C', 'slug' => 'c', 'active' => 1]);
         $product = Product::create([
             'category_id' => $cat->id,
@@ -96,14 +96,14 @@ class OrderFlowTest extends TestCase
             'price' => 50,
             'quantity' => 100,
             'sku' => 'BK',
-            'active' => 1
+            'active' => 1,
         ]);
-        
+
         // Create order via Service or API? API is easier.
         $createResp = $this->postJson('/api/v1/orders', [
             'customer_name' => 'Book Reader',
             'payment_method' => 'cod',
-            'items' => [['product_id' => $product->id, 'quantity' => 1]]
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
         ], $headers);
         $orderId = $createResp->json('data.id');
 

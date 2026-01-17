@@ -2,18 +2,17 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\Category;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
 class ApiFlowTest extends TestCase
 {
     // usage of RefreshDatabase might wipe existing data, but since it's staging/local, it should be fine.
     // Use DatabaseTruncation for speed if available, or just standard RefreshDatabase.
-    use RefreshDatabase; 
+    use RefreshDatabase;
 
     public function test_auth_flow()
     {
@@ -23,15 +22,15 @@ class ApiFlowTest extends TestCase
             'email' => 'test@example.com',
             'password' => 'password',
             'password_confirmation' => 'password',
-            'role' => 'superadmin' // Use superadmin to bypass RBAC for flow testing
+            'role' => 'superadmin', // Use superadmin to bypass RBAC for flow testing
         ]);
         $response->assertStatus(201);
-        
+
         // 1.5. Upgrade user to Superadmin for flow testing (since public register = restricted user)
         $user = User::where('email', 'test@example.com')->first();
         $user->role = 'superadmin';
         $user->save();
-        
+
         // 2. Login
         $loginResponse = $this->postJson('/api/v1/login', [
             'email' => 'test@example.com',
@@ -41,13 +40,13 @@ class ApiFlowTest extends TestCase
             ->assertJsonStructure(['access_token', 'refresh_token', 'user']);
         $token = $loginResponse->json('access_token');
         $this->assertNotNull($token);
-            
+
         $refreshToken = $loginResponse->json('refresh_token');
 
         // 3. Access Protected Route (Categories)
-        $this->withHeader('Authorization', 'Bearer ' . $token)
-             ->getJson('/api/v1/categories')
-             ->assertStatus(200);
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/v1/categories')
+            ->assertStatus(200);
 
         // 4. Refresh Token
         $refreshResponse = $this->postJson('/api/v1/refresh', [
@@ -55,11 +54,11 @@ class ApiFlowTest extends TestCase
         ]);
         $refreshResponse->assertStatus(200)
             ->assertJsonStructure(['access_token']);
-            
+
         // 5. Logout
-        $this->withHeader('Authorization', 'Bearer ' . $token)
-             ->postJson('/api/v1/logout', ['refresh_token' => $refreshToken])
-             ->assertStatus(200);
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/v1/logout', ['refresh_token' => $refreshToken])
+            ->assertStatus(200);
     }
 
     public function test_category_crud_and_active_scope()
@@ -72,51 +71,51 @@ class ApiFlowTest extends TestCase
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
 
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
         // Create
         $response = $this->postJson('/api/v1/categories', [
             'name' => 'Electronics',
             'slug' => 'electronics',
             'description' => 'Gadgets',
-            'active' => true
+            'active' => true,
         ], $headers);
         $response->assertStatus(201);
         $id = $response->json('data.id');
 
         // Read
         $this->getJson("/api/v1/categories/{$id}", $headers)
-             ->assertStatus(200)
-             ->assertJson(['data' => ['name' => 'Electronics']]);
+            ->assertStatus(200)
+            ->assertJson(['data' => ['name' => 'Electronics']]);
 
         // Update
         $this->putJson("/api/v1/categories/{$id}", [
             'name' => 'Electronics Updated',
             'slug' => 'electronics-updated',
-            'active' => true
+            'active' => true,
         ], $headers)
-             ->assertStatus(200)
-             ->assertJson(['data' => ['name' => 'Electronics Updated']]);
+            ->assertStatus(200)
+            ->assertJson(['data' => ['name' => 'Electronics Updated']]);
 
         // Toggle Active
         $this->postJson("/api/v1/categories/{$id}/toggle-active", [], $headers)
-             ->assertStatus(200)
-             ->assertJson(['data' => ['active' => false]]);
+            ->assertStatus(200)
+            ->assertJson(['data' => ['active' => false]]);
 
         // Check Index (Active Scope)
-        // Should NOT see it? Wait, API index usually shows active? 
-        // Our Repo->all() shows all by default? 
-        // ActiveScope trait applies Global Scope 'active'. 
+        // Should NOT see it? Wait, API index usually shows active?
+        // Our Repo->all() shows all by default?
+        // ActiveScope trait applies Global Scope 'active'.
         // So Repo->all() -> Model::all() -> with scope -> should NOT show inactive.
         $this->getJson('/api/v1/categories', $headers)
-             ->assertJsonMissing(['id' => $id]); 
+            ->assertJsonMissing(['id' => $id]);
 
         // Toggle Back
         $this->postJson("/api/v1/categories/{$id}/toggle-active", [], $headers);
-        
+
         // Delete
         $this->deleteJson("/api/v1/categories/{$id}", [], $headers)
-             ->assertStatus(204);
+            ->assertStatus(204);
 
         // Verify Soft Delete
         $this->assertSoftDeleted('categories', ['id' => $id]);
@@ -127,7 +126,7 @@ class ApiFlowTest extends TestCase
         $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
         // Create 20 categories
         for ($i = 0; $i < 20; $i++) {
@@ -152,15 +151,17 @@ class ApiFlowTest extends TestCase
         $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
-        Category::create(['name' => "Dropdown Cat", 'slug' => "dropdown-cat", 'active' => true]);
+        Category::create(['name' => 'Dropdown Cat', 'slug' => 'dropdown-cat', 'active' => true]);
 
         $response = $this->getJson('/api/v1/categories/dropdown', $headers);
         $response->assertStatus(200);
         $data = $response->json();
-        if (isset($data['data'])) $data = $data['data'];
-        
+        if (isset($data['data'])) {
+            $data = $data['data'];
+        }
+
         $this->assertNotEmpty($data);
         $this->assertArrayHasKey('id', $data[0]);
         $this->assertArrayHasKey('name', $data[0]);
@@ -171,7 +172,7 @@ class ApiFlowTest extends TestCase
         $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
         $cat = Category::create(['name' => 'Main', 'slug' => 'main', 'active' => true]);
 
@@ -183,29 +184,29 @@ class ApiFlowTest extends TestCase
             'sku' => 'NSP-001',
             'price' => 100,
             'quantity' => 10,
-            'active' => true
+            'active' => true,
         ], $headers);
         $response->assertStatus(201);
 
         // User Settings
         // Set
         $this->postJson('/api/v1/settings', ['key' => 'theme', 'value' => 'dark'], $headers)
-             ->assertStatus(200);
-        
+            ->assertStatus(200);
+
         // Get
         $this->getJson('/api/v1/settings', $headers)
-             ->assertStatus(200)
-             ->assertJsonFragment(['key' => 'theme', 'value' => 'dark']);
+            ->assertStatus(200)
+            ->assertJsonFragment(['key' => 'theme', 'value' => 'dark']);
     }
 
     public function test_product_image_upload()
     {
         Storage::fake('minio_private');
-        
+
         $user = User::factory()->create(['role' => 'superadmin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
         $cat = Category::create(['name' => 'Image Cat', 'slug' => 'image-cat', 'active' => true]);
 
@@ -216,17 +217,17 @@ class ApiFlowTest extends TestCase
             'name' => 'Product With Image',
             'sku' => 'IMG-001',
             'price' => 50,
-            'image' => $file
+            'image' => $file,
         ], $headers);
 
         $response->assertStatus(201);
         $response->assertJsonStructure(['data' => ['image_url']]);
-        
+
         // Assert the URL is a Signed URL (or at least looks like a URL)
         // Since we use Storage::fake(), temporaryUrl might return "http://localhost/storage/..." or similar,
         // typically generic if not fully configured.
         // But we can check that a file exists in the correct private path: tenants/{id}/products/...
-        
+
         $files = Storage::disk('minio_private')->allFiles("tenants/{$user->id}/products");
         $this->assertGreaterThan(0, count($files));
     }
@@ -234,25 +235,25 @@ class ApiFlowTest extends TestCase
     public function test_public_upload()
     {
         Storage::fake('minio');
-        
+
         $user = User::factory()->create(['role' => 'admin', 'active' => true]);
         $jwt = app(\App\Services\JwtService::class);
         $token = $jwt->generateAccessToken($user->id);
-        $headers = ['Authorization' => 'Bearer ' . $token];
+        $headers = ['Authorization' => 'Bearer '.$token];
 
         $file = \Illuminate\Http\UploadedFile::fake()->image('banner.jpg');
 
         $response = $this->postJson('/api/v1/uploads/public', [
-            'image' => $file
+            'image' => $file,
         ], $headers);
 
         $response->assertStatus(201)
-                 ->assertJsonStructure(['data' => ['url']]);
+            ->assertJsonStructure(['data' => ['url']]);
 
         // Verify it went to the 'minio' disk (public)
         // Note: Filename changes (uniqid), so just check if any file exists in 'public' dir (default path)
         // MinioService default path for public upload is 'public'
-        $files = Storage::disk('minio')->allFiles('public'); 
+        $files = Storage::disk('minio')->allFiles('public');
         $this->assertGreaterThan(0, count($files));
     }
 }

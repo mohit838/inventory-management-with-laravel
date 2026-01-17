@@ -32,12 +32,14 @@ abstract class EloquentBaseRepository implements BaseRepositoryInterface
     {
         $model = $this->find($id);
         $model->update($data);
+
         return $model;
     }
 
     public function delete(int $id)
     {
         $model = $this->findWithInactive($id);
+
         return $model->delete();
     }
 
@@ -50,22 +52,26 @@ abstract class EloquentBaseRepository implements BaseRepositoryInterface
     {
         // Check if model has the scope before calling it to avoid errors if trait not used
         if (method_exists($this->model, 'scopeWithInactive')) {
-           return $this->model->withInactive()->findOrFail($id);
+            return $this->model->withInactive()->findOrFail($id);
         }
+
         return $this->find($id);
     }
 
     public function restore(int $id)
     {
         $model = $this->findTrashed($id);
+
         return $model->restore();
     }
 
     public function forceDelete(int $id)
     {
         $model = $this->findTrashed($id);
+
         return $model->forceDelete();
     }
+
     public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = [])
     {
         return $this->model->with($relations)->paginate($perPage, $columns);
@@ -76,7 +82,7 @@ abstract class EloquentBaseRepository implements BaseRepositoryInterface
         return $this->model->with($relations)
             ->where(function ($query) use ($term, $searchableFields) {
                 foreach ($searchableFields as $field) {
-                    $query->orWhere($field, 'like', '%' . $term . '%');
+                    $query->orWhere($field, 'like', '%'.$term.'%');
                 }
             })
             ->paginate($perPage);

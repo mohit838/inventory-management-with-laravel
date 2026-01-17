@@ -10,11 +10,14 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\ActiveScope, \App\Traits\HasPermissions;
+    use \App\Traits\ActiveScope, \App\Traits\HasPermissions, HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, Notifiable;
 
     const ROLE_SUPERADMIN = 'superadmin';
+
     const ROLE_ADMIN = 'admin';
+
     const ROLE_USER = 'user';
+
     const ROLE_EMPLOYEE = 'employee';
 
     /**

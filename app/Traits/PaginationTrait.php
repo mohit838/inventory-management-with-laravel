@@ -8,9 +8,6 @@ trait PaginationTrait
 {
     /**
      * Format pagination data.
-     *
-     * @param LengthAwarePaginator $paginator
-     * @return array
      */
     protected function formatPagination(LengthAwarePaginator $paginator): array
     {

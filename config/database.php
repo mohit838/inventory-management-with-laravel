@@ -34,11 +34,14 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            'database' => (function() {
+            'database' => (function () {
                 $db = env('DB_DATABASE', database_path('database.sqlite'));
-                if ($db === ':memory:') return $db;
-                return (str_starts_with($db, '/') || str_starts_with($db, '\\') || (strlen($db) > 1 && $db[1] === ':')) 
-                    ? $db 
+                if ($db === ':memory:') {
+                    return $db;
+                }
+
+                return (str_starts_with($db, '/') || str_starts_with($db, '\\') || (strlen($db) > 1 && $db[1] === ':'))
+                    ? $db
                     : database_path($db);
             })(),
             'prefix' => '',

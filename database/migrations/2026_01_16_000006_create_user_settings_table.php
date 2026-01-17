@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('user_settings', function (Blueprint $table) {
@@ -13,7 +14,7 @@ return new class extends Migration {
             $table->string('key')->index(); // e.g., 'theme', 'notifications', 'pagination_limit'
             $table->text('value')->nullable(); // Can be JSON or simple string
             $table->timestamps();
-            
+
             // Ensure unique key per user
             $table->unique(['user_id', 'key']);
         });

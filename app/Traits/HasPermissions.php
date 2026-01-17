@@ -46,7 +46,7 @@ trait HasPermissions
 
     public function revokePermissionTo(array|string $permissions)
     {
-         if (is_string($permissions)) {
+        if (is_string($permissions)) {
             $permissions = [$permissions];
         }
 

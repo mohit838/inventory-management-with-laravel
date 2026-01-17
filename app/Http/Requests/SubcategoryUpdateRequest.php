@@ -16,7 +16,7 @@ class SubcategoryUpdateRequest extends FormRequest
         return [
             'category_id' => 'sometimes|exists:categories,id',
             'name' => 'sometimes|string|max:255',
-            'slug' => 'sometimes|string|max:255|unique:subcategories,slug,' . $this->route('subcategory'),
+            'slug' => 'sometimes|string|max:255|unique:subcategories,slug,'.$this->route('subcategory'),
             'active' => 'sometimes|boolean',
         ];
     }

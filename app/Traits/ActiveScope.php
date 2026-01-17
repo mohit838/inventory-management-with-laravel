@@ -12,7 +12,7 @@ trait ActiveScope
     public static function bootActiveScope(): void
     {
         static::addGlobalScope('active', function (Builder $builder) {
-            $builder->where($builder->getModel()->getTable() . '.active', true);
+            $builder->where($builder->getModel()->getTable().'.active', true);
         });
     }
 
@@ -29,6 +29,6 @@ trait ActiveScope
      */
     public function scopeInactive(Builder $query): void
     {
-        $query->withoutGlobalScope('active')->where($query->getModel()->getTable() . '.active', false);
+        $query->withoutGlobalScope('active')->where($query->getModel()->getTable().'.active', false);
     }
 }

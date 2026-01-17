@@ -14,9 +14,10 @@ class CategoryUpdateRequest extends FormRequest
     public function rules(): array
     {
         $id = $this->route('category');
+
         return [
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:categories,slug,' . $id,
+            'slug' => 'required|string|max:255|unique:categories,slug,'.$id,
             'description' => 'nullable|string',
             'active' => 'sometimes|boolean',
         ];

@@ -14,7 +14,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
-            'permissions' => $this->whenLoaded('roles', function() {
+            'permissions' => $this->whenLoaded('roles', function () {
                 return $this->getAllPermissions()->pluck('name');
             }) ?: $this->getAllPermissions()->pluck('name'),
             'active' => (bool) $this->active,

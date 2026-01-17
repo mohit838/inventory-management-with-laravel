@@ -28,7 +28,7 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
             $table->dropColumn('low_stock_threshold');
         });
-        
+
         Schema::table('categories', function (Blueprint $table) {
             $table->dropColumn('low_stock_threshold');
         });

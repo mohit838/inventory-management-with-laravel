@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use App\Models\UserSetting;
-use Illuminate\Database\Eloquent\Model;
 
 class UserSettingRepository extends EloquentBaseRepository
 {

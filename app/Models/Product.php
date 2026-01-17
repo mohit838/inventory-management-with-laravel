@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\ActiveScope;
+    use \App\Traits\ActiveScope, HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -20,7 +20,7 @@ class Product extends Model
         'price',
         'quantity',
         'active',
-        'low_stock_threshold'
+        'low_stock_threshold',
     ];
 
     public function category()

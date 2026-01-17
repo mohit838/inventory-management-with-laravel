@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Product;
 use App\Models\Category;
-use Illuminate\Support\Facades\Notification;
+use App\Models\Product;
+use App\Models\User;
 use App\Notifications\LowStockAlert;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Notification;
+use Tests\TestCase;
 
 class AlertFlowTest extends TestCase
 {
@@ -24,9 +24,9 @@ class AlertFlowTest extends TestCase
     public function test_threshold_inheritance_and_notification()
     {
         Notification::fake();
-        
+
         $admin = User::factory()->create(['role' => 'superadmin', 'active' => true]);
-        
+
         // 1. Setup Data
         // Case A: Category Threshold = 20, Product Qty = 15 (Should Alert)
         $catA = Category::create(['name' => 'Cat A', 'slug' => 'cat-a', 'active' => 1, 'low_stock_threshold' => 20]);
@@ -34,7 +34,7 @@ class AlertFlowTest extends TestCase
             'category_id' => $catA->id,
             'name' => 'Threshold Inherited',
             'quantity' => 15,
-            'low_stock_threshold' => null // Inherit
+            'low_stock_threshold' => null, // Inherit
         ]); // 15 <= 20 : ALERT
 
         // Case B: Category Threshold = 20, Product Threshold = 5, Product Qty = 15 (Should NOT Alert)
@@ -42,7 +42,7 @@ class AlertFlowTest extends TestCase
             'category_id' => $catA->id,
             'name' => 'Threshold Override',
             'quantity' => 15,
-            'low_stock_threshold' => 5 // Override
+            'low_stock_threshold' => 5, // Override
         ]); // 15 > 5 : NO ALERT
 
         // Case C: Default Threshold (10), Product Qty = 8 (Should Alert)
@@ -51,7 +51,7 @@ class AlertFlowTest extends TestCase
             'category_id' => $catC->id,
             'name' => 'Default Threshold',
             'quantity' => 8,
-            'low_stock_threshold' => null
+            'low_stock_threshold' => null,
         ]); // 8 <= 10 : ALERT
 
         // 2. Run Command

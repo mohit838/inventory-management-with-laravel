@@ -3,17 +3,17 @@
 namespace App\Services;
 
 use App\Interfaces\CacheServiceInterface;
-use Illuminate\Support\Facades\Cache;
 use Closure;
+use Illuminate\Support\Facades\Cache;
 
 class RedisCacheService implements CacheServiceInterface
 {
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function remember(string $key, int $ttlSeconds, Closure $callback, $tags = [])
     {
-        if (!empty($tags) && config('cache.default') !== 'file' && config('cache.default') !== 'database') {
+        if (! empty($tags) && config('cache.default') !== 'file' && config('cache.default') !== 'database') {
             return Cache::tags($tags)->remember($key, $ttlSeconds, $callback);
         }
 
@@ -21,7 +21,7 @@ class RedisCacheService implements CacheServiceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function forget(string $key): bool
     {
@@ -29,17 +29,17 @@ class RedisCacheService implements CacheServiceInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function invalidateTags($tags): void
     {
-        if (!empty($tags) && config('cache.default') !== 'file' && config('cache.default') !== 'database') {
+        if (! empty($tags) && config('cache.default') !== 'file' && config('cache.default') !== 'database') {
             Cache::tags($tags)->flush();
         }
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function flush(): void
     {

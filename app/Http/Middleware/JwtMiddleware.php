@@ -2,19 +2,19 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 class JwtMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
         $authHeader = $request->header('Authorization', '');
-        if (!$authHeader || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+        if (! $authHeader || ! preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
             return response()->json(['message' => 'Unauthorized. Bearer token missing.'], 401);
         }
 
@@ -37,6 +37,7 @@ class JwtMiddleware
         }
 
         Auth::login($user);
+
         return $next($request);
     }
 }

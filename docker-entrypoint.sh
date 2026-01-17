@@ -20,6 +20,8 @@ php artisan view:cache || { echo "CRITICAL: view:cache failed"; exit 1; }
 php artisan l5-swagger:generate || { echo "CRITICAL: l5-swagger:generate failed"; exit 1; }
 
 # Database migration and seeding
+# NOTE: We use 'migrate --force' which is safe for existing data (it won't delete data).
+# NEVER use 'migrate:fresh' in this script as it will wipe the database.
 if [ "$APP_ENV" != "production" ] || [ "$DB_AUTO_MIGRATE" = "true" ]; then
     echo "Running database migrations..."
     
@@ -45,6 +47,9 @@ if [ "$APP_ENV" != "production" ] || [ "$DB_AUTO_MIGRATE" = "true" ]; then
     }
     
     if [ "$DB_AUTO_SEED" = "true" ]; then
+        if [ "$APP_ENV" = "production" ]; then
+            echo "WARNING: Running seeders in PRODUCTION. Ensure this is intended and won't duplicate data."
+        fi
         echo "Running database seeders..."
         php artisan db:seed --force || { echo "WARNING: Seeding failed, but continuing..."; }
     fi

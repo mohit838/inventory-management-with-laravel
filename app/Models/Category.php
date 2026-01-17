@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, \App\Traits\ActiveScope;
+    use \App\Traits\ActiveScope, HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $fillable = ['name', 'slug', 'description', 'active', 'low_stock_threshold'];
 

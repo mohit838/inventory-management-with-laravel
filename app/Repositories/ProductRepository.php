@@ -16,7 +16,7 @@ class ProductRepository extends EloquentBaseRepository
         $item = $this->findWithInactive($id);
         $item->active = ! $item->active;
         $item->save();
-        
+
         return $item;
     }
 }

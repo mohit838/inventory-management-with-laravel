@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Repositories\OrderRepository;
-use App\Models\Product;
-use Illuminate\Support\Facades\DB;
-use App\Interfaces\InvoiceGeneratorInterface;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Interfaces\InvoiceGeneratorInterface;
+use App\Models\Product;
+use App\Repositories\OrderRepository;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
@@ -30,7 +30,7 @@ class OrderService
             foreach ($data['items'] as $item) {
                 $product = Product::lockForUpdate()->find($item['product_id']); // Lock row
 
-                if (!$product) {
+                if (! $product) {
                     throw new Exception("Product ID {$item['product_id']} not found.");
                 }
 
@@ -72,6 +72,7 @@ class OrderService
     public function generateInvoice(int $orderId)
     {
         $order = $this->orderRepo->find($orderId, ['items.product']);
+
         return $this->invoiceGenerator->generate($order);
     }
 }

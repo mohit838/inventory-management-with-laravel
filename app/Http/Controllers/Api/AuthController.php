@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\JwtService;
-use App\Http\Requests\RegisterRequest;
-use App\Http\Requests\LoginRequest;
-use App\Http\Resources\UserResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use OpenApi\Attributes as OA;
 
-#[OA\Tag(name: "Auth", description: "API Endpoints for Authentication")]
+#[OA\Tag(name: 'Auth', description: 'API Endpoints for Authentication')]
 class AuthController extends Controller
 {
     protected JwtService $jwt;
@@ -24,23 +24,23 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/v1/register",
-        tags: ["Auth"],
-        summary: "Register a new user",
+        path: '/api/v1/register',
+        tags: ['Auth'],
+        summary: 'Register a new user',
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["name", "email", "password", "password_confirmation"],
+                required: ['name', 'email', 'password', 'password_confirmation'],
                 properties: [
-                    new OA\Property(property: "name", type: "string"),
-                    new OA\Property(property: "email", type: "string", format: "email"),
-                    new OA\Property(property: "password", type: "string", format: "password"),
-                    new OA\Property(property: "password_confirmation", type: "string", format: "password")
+                    new OA\Property(property: 'name', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
+                    new OA\Property(property: 'password_confirmation', type: 'string', format: 'password'),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 201, description: "User created")
+            new OA\Response(response: 201, description: 'User created'),
         ]
     )]
     public function register(RegisterRequest $request)
@@ -58,21 +58,21 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/v1/login",
-        tags: ["Auth"],
-        summary: "User login",
+        path: '/api/v1/login',
+        tags: ['Auth'],
+        summary: 'User login',
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["email", "password"],
+                required: ['email', 'password'],
                 properties: [
-                    new OA\Property(property: "email", type: "string", format: "email"),
-                    new OA\Property(property: "password", type: "string", format: "password")
+                    new OA\Property(property: 'email', type: 'string', format: 'email'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password'),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Successful login")
+            new OA\Response(response: 200, description: 'Successful login'),
         ]
     )]
     public function login(LoginRequest $request)
@@ -94,25 +94,25 @@ class AuthController extends Controller
             'token_type' => 'bearer',
             'expires_in' => 900,
             'refresh_token' => $refresh->plain_token,
-            'user' => new UserResource($user)
+            'user' => new UserResource($user),
         ]);
     }
 
     #[OA\Post(
-        path: "/api/v1/refresh",
-        tags: ["Auth"],
-        summary: "Refresh access token",
+        path: '/api/v1/refresh',
+        tags: ['Auth'],
+        summary: 'Refresh access token',
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["refresh_token"],
+                required: ['refresh_token'],
                 properties: [
-                    new OA\Property(property: "refresh_token", type: "string")
+                    new OA\Property(property: 'refresh_token', type: 'string'),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Token refreshed")
+            new OA\Response(response: 200, description: 'Token refreshed'),
         ]
     )]
     public function refresh(Request $request)
@@ -137,20 +137,20 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: "/api/v1/logout",
-        tags: ["Auth"],
-        summary: "Logout user",
-        security: [["bearerAuth" => []]],
+        path: '/api/v1/logout',
+        tags: ['Auth'],
+        summary: 'Logout user',
+        security: [['bearerAuth' => []]],
         requestBody: new OA\RequestBody(
             required: false,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "refresh_token", type: "string")
+                    new OA\Property(property: 'refresh_token', type: 'string'),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Logged out")
+            new OA\Response(response: 200, description: 'Logged out'),
         ]
     )]
     public function logout(Request $request)
@@ -160,6 +160,7 @@ class AuthController extends Controller
             $this->jwt->revokeRefreshTokenByPlain($refresh);
         }
         Auth::logout();
+
         return response()->json(['message' => 'Logged out']);
     }
 }
