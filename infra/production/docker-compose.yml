@@ -3,7 +3,7 @@ services:
     build:
       context: ../..
       dockerfile: Dockerfile
-    image: inventory-management:latest
+    image: ${APP_IMAGE:-inventory-management}
     container_name: inventory_app
     restart: unless-stopped
 
@@ -19,13 +19,12 @@ services:
     environment:
       DB_HOST: host.docker.internal
       DB_PORT: 1234
-
       REDIS_HOST: host.docker.internal
       REDIS_PORT: 1235
 
     volumes:
-      - ../../storage:/var/www/html/storage
-      - ../../bootstrap/cache:/var/www/html/bootstrap/cache
+      - inventory_storage:/var/www/html/storage
+      - inventory_bootstrap_cache:/var/www/html/bootstrap/cache
 
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4002 || exit 1"]
@@ -33,3 +32,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+
+volumes:
+  inventory_storage:
+  inventory_bootstrap_cache:
