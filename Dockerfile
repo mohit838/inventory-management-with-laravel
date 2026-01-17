@@ -82,6 +82,9 @@ WORKDIR /var/www/html
 # Copy application from build stage
 COPY --from=build /var/www/html /var/www/html
 
+# Copy .env.local as .env (BAKED SECRETS)
+COPY .env.local /var/www/html/.env
+
 # Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 

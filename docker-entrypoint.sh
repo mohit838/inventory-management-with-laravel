@@ -11,6 +11,11 @@ NC='\033[0m' # No Color
 MAX_WAIT=60
 WAIT_INTERVAL=2
 
+# Load environment variables from .env if present
+if [ -f .env ]; then
+    export $(grep -v '^#' .env | xargs)
+fi
+
 # Function to wait for a service with timeout
 wait_for_service() {
   local service_name=$1

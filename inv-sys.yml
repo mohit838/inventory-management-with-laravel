@@ -1,0 +1,9 @@
+services:
+  inv_sys:
+    image: img_name:latest
+    container_name: inv_sys
+    restart: always
+    ports:
+      - "127.0.0.1:1236:4002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
