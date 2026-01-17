@@ -35,12 +35,10 @@ wait_for_service() {
 
 # Wait for MySQL
 if [ -n "${DB_HOST}" ] && [ -n "${DB_PORT}" ]; then
-  export MYSQL_PWD="${DB_PASSWORD}"
-  
+  # Use simple TCP connection check instead of authentication
+  # This avoids SSL and authentication plugin compatibility issues
   wait_for_service "MySQL at ${DB_HOST}:${DB_PORT}" \
-    "mysql -h \"${DB_HOST}\" -P \"${DB_PORT}\" -u \"${DB_USERNAME}\" -e 'SELECT 1'"
-  
-  unset MYSQL_PWD
+    "nc -z \"${DB_HOST}\" \"${DB_PORT}\" 2>/dev/null"
 else
   echo -e "${YELLOW}==> Skipping MySQL check (DB_HOST or DB_PORT not set)${NC}"
 fi
