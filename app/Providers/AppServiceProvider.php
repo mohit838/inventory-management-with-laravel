@@ -12,7 +12,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         if (! defined('L5_SWAGGER_CONST_HOST')) {
-            define('L5_SWAGGER_CONST_HOST', env('L5_SWAGGER_CONST_HOST', config('app.url')));
+            $host = env('L5_SWAGGER_CONST_HOST', config('app.url'));
+            
+            // Ensure HTTPS if configured in APP_URL or running in production
+            if (str_starts_with(config('app.url'), 'https://') && !str_starts_with($host, 'https://')) {
+                $host = str_replace('http://', 'https://', $host);
+            }
+            
+            define('L5_SWAGGER_CONST_HOST', $host);
         }
 
         $this->app->bind(
