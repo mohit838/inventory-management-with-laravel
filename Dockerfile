@@ -11,6 +11,7 @@ RUN apk add --no-cache \
     oniguruma-dev \
     icu-dev \
     mysql-client \
+    redis \
     supervisor \
     libpng-dev \
     libjpeg-turbo-dev \
@@ -29,11 +30,21 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     intl \
     zip \
     bcmath \
-    gd
+    gd \
+    opcache
 
 # ---------- PHPRedis (PECL) ----------
 RUN pecl install redis \
     && docker-php-ext-enable redis
+
+# ---------- Production PHP Config ----------
+RUN { \
+    echo 'opcache.enable=1'; \
+    echo 'opcache.memory_consumption=128'; \
+    echo 'opcache.interned_strings_buffer=8'; \
+    echo 'opcache.max_accelerated_files=10000'; \
+    echo 'opcache.validate_timestamps=0'; \
+    } > /usr/local/etc/php/conf.d/opcache.ini
 
 # ---------- Remove build deps ----------
 RUN apk del .build-deps
