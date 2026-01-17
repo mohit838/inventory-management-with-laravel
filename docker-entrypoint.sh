@@ -11,49 +11,50 @@ wait_for_mysql() {
     echo "MySQL is ready!"
 }
 
-# Run optimizations
-echo "Running Laravel optimizations..."
-php artisan optimize:clear || { echo "CRITICAL: optimize:clear failed"; exit 1; }
-php artisan config:cache || { echo "CRITICAL: config:cache failed. Check your .env/database configuration."; exit 1; }
-php artisan route:cache || { echo "CRITICAL: route:cache failed"; exit 1; }
-php artisan view:cache || { echo "CRITICAL: view:cache failed"; exit 1; }
-php artisan l5-swagger:generate || { echo "CRITICAL: l5-swagger:generate failed"; exit 1; }
+# 1. Wait for Database
+if [ "$DB_CONNECTION" = "mysql" ]; then
+    wait_for_mysql
+fi
 
-# Database migration and seeding
-# NOTE: We use 'migrate --force' which is safe for existing data (it won't delete data).
-# NEVER use 'migrate:fresh' in this script as it will wipe the database.
+# 2. Database migration and seeding
+# We do this BEFORE optimizations because 'optimize:clear' (cache:clear) 
+# fails if the database tables (like 'cache') don't exist yet.
 if [ "$APP_ENV" != "production" ] || [ "$DB_AUTO_MIGRATE" = "true" ]; then
     echo "Running database migrations..."
     
     # Pre-check for SQLite if driver is sqlite
     if [ "$DB_CONNECTION" = "sqlite" ]; then
-        # Resolve database path (basic logic to match our database.php fix)
         DB_PATH="$DB_DATABASE"
-        if [[ ! "$DB_PATH" = /* ]]; then
+        if [[ ! "$DB_PATH" = /* ]] && [ "$DB_PATH" != ":memory:" ]; then
             DB_PATH="/var/www/html/database/$DB_DATABASE"
         fi
         
         if [ ! -f "$DB_PATH" ] && [ "$DB_PATH" != ":memory:" ]; then
             echo "CRITICAL: SQLite database file not found at $DB_PATH"
-            echo "Container failed to start - check database volume/path in production."
             exit 1
         fi
     fi
 
     php artisan migrate --force || { 
         echo "CRITICAL: Database migration failed.";
-        echo "Container failed to start - database migration error.";
         exit 1; 
     }
     
     if [ "$DB_AUTO_SEED" = "true" ]; then
         if [ "$APP_ENV" = "production" ]; then
-            echo "WARNING: Running seeders in PRODUCTION. Ensure this is intended and won't duplicate data."
+            echo "WARNING: Running seeders in PRODUCTION."
         fi
-        echo "Running database seeders..."
         php artisan db:seed --force || { echo "WARNING: Seeding failed, but continuing..."; }
     fi
 fi
+
+# 3. Run optimizations
+echo "Running Laravel optimizations..."
+php artisan optimize:clear || { echo "CRITICAL: optimize:clear failed"; exit 1; }
+php artisan config:cache || { echo "CRITICAL: config:cache failed"; exit 1; }
+php artisan route:cache || { echo "CRITICAL: route:cache failed"; exit 1; }
+php artisan view:cache || { echo "CRITICAL: view:cache failed"; exit 1; }
+php artisan l5-swagger:generate || { echo "CRITICAL: l5-swagger:generate failed"; exit 1; }
 
 # Execute the CMD
 echo "Starting application..."
