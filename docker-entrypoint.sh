@@ -3,7 +3,6 @@ set -e
 
 echo "Waiting for MySQL..."
 
-# keep trying until MySQL answers
 until mysql -h"${DB_HOST}" -P"${DB_PORT:-3306}" -u"${DB_USERNAME}" -p"${DB_PASSWORD}" -e "SELECT 1" >/dev/null 2>&1
 do
   echo "MySQL not ready... sleeping"
@@ -12,11 +11,13 @@ done
 
 echo "MySQL is ready!"
 
-# migrate + seed (optional)
-php artisan migrate --force || exit 1
+# Clear cached config so wrong old values don't remain
+php artisan optimize:clear || true
 
-# caches
-php artisan optimize:clear
+# migrate
+php artisan migrate --force
+
+# cache again
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
