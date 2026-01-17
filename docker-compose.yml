@@ -6,6 +6,9 @@ services:
     ports:
       - "${DOCKER_APP_PORT_EXTERNAL:-1236}:${DOCKER_APP_PORT_INTERNAL:-4002}"
     env_file: [.env]
+    environment:
+      - DB_HOST=mysql
+      - REDIS_HOST=redis
     depends_on:
       mysql:
         condition: service_healthy
