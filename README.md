@@ -180,10 +180,10 @@ Includes:
 #### 1) Config
 
 ```bash
-cp .env.example .env
+cp infra/local/.env.example infra/local/.env.local
 # Ensure:
 # APP_ENV=local
-# DB_HOST=db
+# DB_HOST=mysql
 # REDIS_HOST=redis
 # MINIO_ENDPOINT=http://minio:9000
 ```
@@ -191,15 +191,15 @@ cp .env.example .env
 #### 2) Start Services
 
 ```bash
-docker-compose -f docker-compose.dev.yml up -d --build
+docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env.local up -d --build
 ```
 
 #### 3) Install Dependencies + Migrate
 
 ```bash
-docker-compose -f docker-compose.dev.yml exec app composer install
-docker-compose -f docker-compose.dev.yml exec app php artisan key:generate
-docker-compose -f docker-compose.dev.yml exec app php artisan migrate:fresh --seed
+docker compose -f infra/local/docker-compose.yml exec app composer install
+docker compose -f infra/local/docker-compose.yml exec app php artisan key:generate
+docker compose -f infra/local/docker-compose.yml exec app php artisan migrate:fresh --seed
 ```
 
 ---
@@ -218,10 +218,10 @@ docker build -t inventory-service .
 #### 2) Run
 
 ```bash
-docker run -d -p 8000:8000 --env-file .env.prod inventory-service
+docker run -d -p 8000:8000 --env-file infra/production/.env inventory-service
 ```
 
-Or use `docker-compose.yml` for orchestration.
+Or use `infra/production/docker-compose.yml` for orchestration.
 
 ---
 

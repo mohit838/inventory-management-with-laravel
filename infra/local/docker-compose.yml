@@ -5,7 +5,6 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_MYSQL_PORT_EXTERNAL:-1234}:3306"
-    env_file: [.env]
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
@@ -13,17 +12,12 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./docker/mysql/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent",
-        ]
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent" ]
       interval: 5s
       timeout: 5s
       retries: 10
-    networks: [app-network]
+    networks: [ app-network ]
 
   redis:
     image: redis/redis-stack:latest
@@ -31,26 +25,26 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_REDIS_PORT_EXTERNAL:-1235}:8001"
-    env_file: [.env]
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: [ "redis-server", "--requirepass", "${REDIS_PASSWORD}" ]
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 10
-    networks: [app-network]
+    networks: [ app-network ]
     volumes:
       - redis_data:/data
       - redisinsight_data:/redisinsight
 
   app:
-    build: .
+    build:
+      context: ../..
+      dockerfile: Dockerfile
     image: ${APP_IMAGE:-inventory-management}
     container_name: inventory_app
     restart: unless-stopped
     ports:
       - "${DOCKER_APP_PORT_EXTERNAL:-1236}:${DOCKER_APP_PORT_INTERNAL:-4002}"
-    env_file: [.env]
 
     environment:
       DB_HOST: mysql
@@ -63,16 +57,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks: [app-network]
+    networks: [ app-network ]
     volumes:
-      - ./storage:/var/www/html/storage
-      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+      - ../../storage:/var/www/html/storage
+      - ../../bootstrap/cache:/var/www/html/bootstrap/cache
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -fsS http://localhost:${DOCKER_APP_PORT_INTERNAL:-4002} || exit 1",
-        ]
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:${DOCKER_APP_PORT_INTERNAL:-4002} || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 3

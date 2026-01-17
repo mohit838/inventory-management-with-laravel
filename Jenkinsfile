@@ -90,7 +90,7 @@ pipeline {
           export APP_IMAGE=${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}
 
           # Using --remove-orphans ensures old containers not in the new compose file are removed
-          docker compose -f docker-compose.yml up -d --remove-orphans
+          docker compose -f infra/production/docker-compose.yml up -d --remove-orphans
 
           echo "Verifying deployment..."
           docker ps

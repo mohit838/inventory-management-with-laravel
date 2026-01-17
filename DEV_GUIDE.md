@@ -65,15 +65,15 @@ The database seeder creates two default users for testing different RBAC permiss
 
 - **Start Services (Development)**:
     ```bash
-    docker compose -f docker-compose.dev.yml up -d --build
+    docker compose -f infra/local/docker-compose.yml --env-file infra/local/.env.local up -d --build
     ```
 - **Execute Commands in Container**:
     ```bash
-    docker compose exec app php artisan <command>
+    docker compose -f infra/local/docker-compose.yml exec app php artisan <command>
     ```
 - **Monitor Logs**:
     ```bash
-    docker logs -f inventory_app
+    docker compose -f infra/local/docker-compose.yml logs -f app
     ```
 
 ### 🔍 Debugging with Tinker
