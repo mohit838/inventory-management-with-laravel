@@ -1,10 +1,10 @@
 services:
   app:
-    image: ${APP_IMAGE}
+    image: ${APP_IMAGE:-inventory-app:latest}
     container_name: inventory_app
     restart: unless-stopped
     ports:
-      - "1236:4002"
+      - "${DOCKER_APP_PORT_EXTERNAL:-1236}:${DOCKER_APP_PORT_INTERNAL:-4002}"
     env_file: [.env]
     depends_on:
       mysql:
@@ -13,7 +13,7 @@ services:
         condition: service_healthy
     networks: [app-network]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4002"]
+      test: ["CMD", "curl", "-f", "http://localhost:${DOCKER_APP_PORT_INTERNAL:-4002}"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -27,7 +27,7 @@ services:
     container_name: inventory_mysql
     restart: unless-stopped
     ports:
-      - "1234:3306"
+      - "${DOCKER_MYSQL_PORT_EXTERNAL:-1234}:3306"
     env_file: [.env]
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -49,7 +49,7 @@ services:
     container_name: inventory_redis
     restart: unless-stopped
     ports:
-      - "1235:8001"
+      - "${DOCKER_REDIS_PORT_EXTERNAL:-1235}:8001"
     env_file: [.env]
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD}"
