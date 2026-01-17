@@ -11,7 +11,10 @@ RUN apk add --no-cache \
     oniguruma-dev \
     icu-dev \
     mysql-client \
-    supervisor
+    supervisor \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
 
 # ---------- Build deps for PECL + phpize ----------
 RUN apk add --no-cache --virtual .build-deps \
@@ -19,12 +22,14 @@ RUN apk add --no-cache --virtual .build-deps \
     linux-headers
 
 # ---------- PHP Extensions (core) ----------
-RUN docker-php-ext-install \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
     pdo_mysql \
     mbstring \
     intl \
     zip \
-    bcmath
+    bcmath \
+    gd
 
 # ---------- PHPRedis (PECL) ----------
 RUN pecl install redis \
