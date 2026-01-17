@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_APP_PORT_EXTERNAL:-1236}:${DOCKER_APP_PORT_INTERNAL:-4002}"
-    env_file: [.env]
+    env_file: [.env.docker]
     depends_on:
       mysql:
         condition: service_healthy
@@ -28,17 +28,12 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_MYSQL_PORT_EXTERNAL:-1234}:3306"
-    env_file: [.env]
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+    env_file: [.env.docker]
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql/init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$DB_USERNAME", "-p$$DB_PASSWORD"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u${DB_USERNAME}", "-p${DB_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -50,7 +45,7 @@ services:
     restart: unless-stopped
     ports:
       - "${DOCKER_REDIS_PORT_EXTERNAL:-1235}:8001"
-    env_file: [.env]
+    env_file: [.env.docker]
     environment:
       REDIS_ARGS: "--requirepass ${REDIS_PASSWORD}"
     healthcheck:

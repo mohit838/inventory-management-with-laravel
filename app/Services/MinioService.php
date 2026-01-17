@@ -11,78 +11,53 @@ use Intervention\Image\ImageManager;
 
 class MinioService
 {
-    protected string $disk = 'minio_private';
-
-    public function uploadImage(UploadedFile $file, int $userId, string $path = 'products', int $quality = 75, int $maxRetry = 3): ?string
+    /**
+     * Upload an image to private storage with compression.
+     */
+    public function uploadImage(UploadedFile $file, ?int $userId = null, string $path = 'products', int $quality = 75): ?string
     {
-        $attempt = 0;
-        $manager = new ImageManager(new Driver);
-
-        do {
-            $attempt++;
-            try {
-                // 1. Compress Image
-                $image = $manager->read($file->getRealPath());
-                $image->scale(width: 1920); // Max width 1920
-                $encoded = $image->toWebp(quality: $quality);
-
-                // 2. Generate Filename (Relative Path)
-                // format: tenants/{userId}/{path}/{uuid}.webp
-                $filename = "tenants/{$userId}/{$path}/".uniqid().'.webp';
-
-                // 3. Upload to MinIO Private Disk
-                Storage::disk($this->disk)->put($filename, (string) $encoded);
-
-                // 4. Return Relative Path (Not URL)
-                return $filename;
-
-            } catch (Exception $e) {
-                Log::error("MinIO Upload Failed (Attempt $attempt): ".$e->getMessage());
-
-                if ($attempt >= $maxRetry) {
-                    throw new Exception("Upload failed after $maxRetry attempts. Please try again later.");
-                }
-
-                sleep(1);
-            }
-        } while ($attempt < $maxRetry);
-
-        return null;
+        $directory = $userId ? "tenants/{$userId}/{$path}" : $path;
+        return $this->processAndUpload($file, 'minio_private', $directory, $quality);
     }
 
-    public function uploadPublic(UploadedFile $file, string $path = 'public', int $quality = 75, int $maxRetry = 3): ?string
+    /**
+     * Upload an image to public storage and return the URL.
+     */
+    public function uploadPublic(UploadedFile $file, string $path = 'public', int $quality = 75): ?string
     {
-        $attempt = 0;
-        $manager = new ImageManager(new Driver);
+        return $this->processAndUpload($file, 'minio', $path, $quality);
+    }
 
-        do {
-            $attempt++;
+    /**
+     * Internal helper to handle image processing and storage interactions.
+     */
+    protected function processAndUpload(UploadedFile $file, string $disk, string $directory, int $quality): ?string
+    {
+        return retry(3, function () use ($file, $disk, $directory, $quality) {
             try {
-                // 1. Compress Image
+                // 1. Process Image using Intervention v3
+                $manager = new ImageManager(new Driver());
                 $image = $manager->read($file->getRealPath());
+                
+                // Professional scaling and compression
                 $image->scale(width: 1920);
                 $encoded = $image->toWebp(quality: $quality);
 
-                // 2. Generate Filename
-                $filename = $path.'/'.uniqid().'.webp';
+                // 2. Generate path
+                $filename = trim($directory, '/') . '/' . uniqid() . '.webp';
 
-                // 3. Upload to MinIO Public Disk
-                Storage::disk('minio')->put($filename, (string) $encoded);
+                // 3. Storage interaction
+                /** @var \Illuminate\Contracts\Filesystem\Cloud $storage */
+                $storage = Storage::disk($disk);
+                $storage->put($filename, (string) $encoded);
 
-                // 4. Return Full URL
-                return Storage::disk('minio')->url($filename);
+                // 4. Return appropriate path or URL
+                return $disk === 'minio' ? $storage->url($filename) : $filename;
 
             } catch (Exception $e) {
-                Log::error("MinIO Public Upload Failed (Attempt $attempt): ".$e->getMessage());
-
-                if ($attempt >= $maxRetry) {
-                    throw new Exception("Public upload failed after $maxRetry attempts.");
-                }
-
-                sleep(1);
+                Log::error("MinIO Upload Failed on disk [{$disk}]: " . $e->getMessage());
+                throw $e; // Rethrow for retry() to catch
             }
-        } while ($attempt < $maxRetry);
-
-        return null;
+        }, 100);
     }
 }

@@ -58,10 +58,44 @@ The database seeder creates two default users for testing different RBAC permiss
   php artisan route:clear
   ```
 
-### Development Server
-- **Run Locally**:
+### Docker Management
+- **Start Services (Development)**:
   ```bash
-  php artisan serve
+  docker compose -f docker-compose.dev.yml up -d --build
+  ```
+- **Execute Commands in Container**:
+  ```bash
+  docker compose exec app php artisan <command>
+  ```
+- **Monitor Logs**:
+  ```bash
+  docker logs -f inventory_app
+  ```
+
+### 🔍 Debugging with Tinker
+Tinker is essential for testing services and repository logic directly.
+
+- **Check Service Status (e.g., MinIO)**:
+  ```php
+  // Verify MinioService instantiation and public link generation
+  $minio = app(App\Services\MinioService::class);
+  echo Storage::disk('minio')->url('test.png');
+  ```
+
+- **Query Database Models**:
+  ```php
+  // Check superadmin user
+  App\Models\User::role('superadmin')->first();
+  ```
+
+- **Clear Cache Manually**:
+  ```php
+  Cache::flush();
+  ```
+
+- **Run Commands via Tinker**:
+  ```bash
+  php artisan tinker --execute="echo App\Models\Product::count();"
   ```
 
 ---
