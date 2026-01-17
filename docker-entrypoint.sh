@@ -4,7 +4,7 @@ set -e
 # Function to wait for MySQL
 wait_for_mysql() {
     echo "Waiting for MySQL to be ready..."
-    until mysql -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" -e "SELECT 1"; do
+    until mysql -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" --ssl-mode=DISABLED -e "SELECT 1"; do
         echo "MySQL connection failed - see error above. Sleeping..."
         sleep 2
     done
