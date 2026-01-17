@@ -60,6 +60,7 @@ REDIS_PASSWORD=your_redis_password
 ### Issue: Container Can't Connect to MySQL
 
 **Symptoms**:
+
 ```
 MySQL at host.docker.internal:3306 not ready... waiting 2s
 ```
@@ -89,29 +90,32 @@ docker exec inventory_app env | grep DB_
 **Solutions**:
 
 1. **MySQL not listening on 0.0.0.0**:
-   ```bash
-   # Edit MySQL config
-   sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
-   # Change: bind-address = 0.0.0.0
-   sudo systemctl restart mysql
-   ```
+
+    ```bash
+    # Edit MySQL config
+    sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+    # Change: bind-address = 0.0.0.0
+    sudo systemctl restart mysql
+    ```
 
 2. **Firewall blocking connection**:
-   ```bash
-   sudo ufw allow 3306
-   ```
+
+    ```bash
+    sudo ufw allow 3306
+    ```
 
 3. **Wrong credentials**:
-   ```bash
-   # Test credentials
-   mysql -h 127.0.0.1 -P 3306 -u root -p
-   ```
+    ```bash
+    # Test credentials
+    mysql -h 127.0.0.1 -P 3306 -u root -p
+    ```
 
 ---
 
 ### Issue: Container Can't Connect to Redis
 
 **Symptoms**:
+
 ```
 Redis at host.docker.internal:6379 not ready... waiting 2s
 ```
@@ -140,24 +144,26 @@ redis-cli -h 127.0.0.1 -p 6379 INFO | grep requirepass
 **Solutions**:
 
 1. **Redis not listening on all interfaces**:
-   ```bash
-   sudo nano /etc/redis/redis.conf
-   # Change: bind 0.0.0.0 ::1
-   sudo systemctl restart redis
-   ```
+
+    ```bash
+    sudo nano /etc/redis/redis.conf
+    # Change: bind 0.0.0.0 ::1
+    sudo systemctl restart redis
+    ```
 
 2. **Password mismatch**:
-   ```bash
-   # Check Redis password in config
-   sudo grep requirepass /etc/redis/redis.conf
-   # Update .env REDIS_PASSWORD to match
-   ```
+    ```bash
+    # Check Redis password in config
+    sudo grep requirepass /etc/redis/redis.conf
+    # Update .env REDIS_PASSWORD to match
+    ```
 
 ---
 
 ### Issue: Storage Directory Errors
 
 **Symptoms**:
+
 ```
 file_put_contents(/var/www/html/storage/...): Failed to open stream: No such file or directory
 ```
@@ -364,4 +370,12 @@ Tinker is essential for testing services and repository logic directly.
 
 ```bash
 tree -I "node_modules|dist|.git|.vscode|logs|tmp|coverage|vendor" > project-tree.txt
+```
+
+## Create a shared network and connect existing containers
+
+```bash
+docker network create inventory-net || true
+docker network connect inventory-net inventory_mysql || true
+docker network connect inventory-net inventory_redis || true
 ```
