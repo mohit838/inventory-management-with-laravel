@@ -13,9 +13,10 @@ This application serves as a comprehensive **Inventory Management System** with 
 -   **SaaS Storage**: Secure, tenant-isolated file storage using **MinIO (S3-compatible)**
 -   **Authentication**: Stateless **JWT** authentication with **RBAC** (Role-Based Access Control)
 -   **Performance**: High-performance caching (**Redis**) and standardized API responses
--   **Audit Logging**: Comprehensive audit trail for all critical operations
+-   **Audit Logging**: Comprehensive audit trail for all critical operations (automated via Model Observers)
 -   **Low Stock Alerts**: Automated notifications for inventory thresholds
--   **Developer Experience**: API documentation (Swagger), comprehensive tests, and Docker support
+-   **Developer Experience**: API documentation (Swagger) extracted to dedicated classes for lean controllers, comprehensive tests, and Docker support
+-   **Architectural Optimization**: Optimized Repository pattern with shared logic and standard API Resources for data transformation
 
 ---
 

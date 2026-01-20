@@ -387,6 +387,71 @@ docker build -t mohit838/img:latest .
 docker push mohit838/img:latest
 ```
 
-## Working Process or Coding Struct
+---
 
-![alt text](image.png)
+## 🏗️ Step-by-Step Module Creation Guide
+
+When developing a new API or module (e.g., "Supplier Management"), follow this standardized flow to maintain scalability and cleanliness.
+
+### 1. Database & Model
+- **Command**: `php artisan make:model Supplier -m`
+- **Action**: Define schema in migration and `$fillable` fields in the Model.
+- **Traits**: Use `ActiveScope` if the entity needs an `active` toggle.
+
+### 2. Repository (Data Access)
+- **File**: `app/Repositories/SupplierRepository.php`
+- **Action**: Extend `EloquentBaseRepository`.
+- **Reasoning**: This keeps database logic out of controllers and makes it reusable.
+
+### 3. API Resource (Data Transformation)
+- **Command**: `php artisan make:resource SupplierResource`
+- **Scenario**: Use this whenever you return data to the client.
+- **Purpose**:
+    - Casting types (e.g., `(float) $this->price`)
+    - Hiding sensitive fields
+    - Generating URLs for images (using `MinioService`)
+    - Including related data cleanly
+
+### 4. Model Observer (Side Effects)
+- **Command**: `php artisan make:observer SupplierObserver --model=Supplier`
+- **Scenario**:
+    - **Audit Logs**: Automatically log "Supplier Created" or "Supplier Updated".
+    - **Notifications**: Send an alert when stock is low (handled in `ProductObserver`).
+    - **Cleanup**: Delete related files from S3 when a record is removed.
+- **Registration**: Register in `AppServiceProvider::boot()`.
+
+### 5. Swagger Documentation (Docs Storage)
+- **File**: `app/Http/Controllers/Api/Docs/SupplierDoc.php`
+- **Action**: Create a class and copy Swagger attributes from a similar Doc file.
+- **Registration**: No registration needed, L5-Swagger scans the `Docs` folder.
+- **Reasoning**: Keeps the Controller lean and readable.
+
+### 6. Controller & Request (The Wrapper)
+- **Request**: `php artisan make:request SupplierStoreRequest` (for validation).
+- **Controller**: `php artisan make:controller Api/SupplierController`.
+- **Logic**: 
+    1. Inject `SupplierRepository`.
+    2. Use `SupplierStoreRequest` in the `store` method.
+    3. Return `new SupplierResource($item)`.
+
+### 7. Feature Testing
+- **Command**: `php artisan make:test SupplierFlowTest`
+- **Action**: Verify that creating a supplier actually logs an audit entry and returns the correct Resource structure.
+
+---
+
+## 📈 Summary: Why this works?
+
+| Component | Responsibility | Purpose |
+| :--- | :--- | :--- |
+| **Model** | Definition | Schema & Relationships |
+| **Repository** | Storage | DB queries & CRUD |
+| **Resource** | Presentation | Clean API response |
+| **Observer** | Automation | Audit logs & Side effects |
+| **Docs** | Communication | API Documentation |
+| **Controller** | Orchestration | Routing & HTTP status |
+
+> [!IMPORTANT]
+> **Never** write manual log calls in the Controller. Use **Observers**.
+> **Never** format your response array in the Controller. Use **Resources**.
+> **Never** write OpenAPI attributes in the Controller. Use **Docs** classes.

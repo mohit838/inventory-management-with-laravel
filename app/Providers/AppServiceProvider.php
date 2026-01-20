@@ -46,6 +46,10 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
+        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
+        \App\Models\Subcategory::observe(\App\Observers\SubcategoryObserver::class);
+
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
             // Check if user has permission (via HasPermissions trait)
             // This handles Superadmin bypass (returns true) and direct permission check.

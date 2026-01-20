@@ -15,7 +15,7 @@ Controllers should be lean. Their only job is to receive a request, call a servi
 public function store(ProductStoreRequest $request)
 {
     $item = $this->repo->create($request->validated());
-    return (new ProductResource($item))->response()->setStatusCode(201);
+    return new ProductResource($item);
 }
 ```
 
@@ -62,6 +62,52 @@ return $this->cache->remember("key", 300, function() {
 
 ---
 
+## 🚀 Recent Optimizations (January 2026)
+
+We have recently refactored the codebase to move from "Standard CRUD" to a more "Scalable & Maintainable" architecture:
+
+### 1. Automated Audit Logging (Model Observers)
+- **Why**: Manual logging in controllers is error-prone and clutters the code.
+- **Pattern**: `Model Observers` (`ProductObserver`, etc.). 
+- **Benefit**: Audit logs are generated automatically on DB events, ensuring 100% coverage without manual calls.
+
+### 2. Lean Controllers & Extracted Documentation
+- **Why**: Swagger annotations were making controllers unreadable.
+- **Pattern**: `Docs` classes (`ProductDoc`) to house OpenAPI attributes.
+- **Benefit**: Controllers only contain action logic, making them easier to test and maintain.
+
+### 3. API Resources (Data Transformation)
+- **Why**: Manual array formatting in controllers is inconsistent.
+- **Pattern**: `JsonResource` (`ProductResource`).
+- **Benefit**: Decouples DB schema from API output. Handles complex logic like temporary S3 URLs cleanly.
+
+---
+
+## ⚖️ Scalability & Over-engineering Analysis
+
+### Why this is NOT Over-engineering
+- **DRY Repositories**: Instead of repeating code, the `EloquentBaseRepository` provides common functionality (search, paginate, toggleActive). Child repositories are usually <10 lines.
+- **Focused Classes**: Each class has one job (SRP). Observers handle logging, Resources handle formatting, Controllers handle routing. This actually *reduces* cognitive load during debugging.
+
+### Scalability Performance
+| Aspect | Status | Why? |
+|--------|---------|------|
+| **Write Throughput** | ✅ Scalable | Observers are fast. For huge volumes, they can easily be converted to asynchronous Jobs. |
+| **Read Performance** | ✅ Scalable | API Resources work seamlessly with Eloquent’s eager loading, and Redis caching is built-in. |
+| **Developer Velocity** | ✅ Highly Scalable | New developers can understand the flow easily: Route -> Controller -> Repo -> Resource. |
+
+### Pros & Cons
+**Pros:**
+- **Testability**: Every layer can be mocked and tested in isolation.
+- **Consistency**: All API endpoints follow the same response structure.
+- **Maintainability**: Changing the database field doesn't break the API (Resource mapping).
+
+**Cons:**
+- **Initial Setup**: Slightly more files to create initially (Resource, Observer, Doc).
+- **Indirection**: Requires following the flow across multiple files.
+
+---
+
 ## 📂 Media Management
 Images are stored in **MinIO** (S3 compatible). Use `MinioService` for uploads and `ProductResource` for generating temporary URLs.
 
@@ -70,7 +116,7 @@ Images are stored in **MinIO** (S3 compatible). Use `MinioService` for uploads a
 ## 📖 Documentation
 We use **Swagger (L5-Swagger)**.
 - **Command**: `php artisan l5-swagger:generate`
-- **Annotations**: Always add `#[OA\...]` attributes to your controller methods.
+- **Annotations**: Extracted to `app/Http/Controllers/Api/Docs` to keep controllers clean.
 
 > [!TIP]
 > Always run `php artisan migrate:fresh --seed` after major changes to ensure your local environment matches the latest schema and permissions.

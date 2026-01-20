@@ -10,13 +10,4 @@ class CategoryRepository extends EloquentBaseRepository
     {
         parent::__construct($model);
     }
-
-    public function toggleActive($id)
-    {
-        $item = $this->findWithInactive($id);
-        $item->active = ! $item->active;
-        $item->save();
-
-        return $item;
-    }
 }
