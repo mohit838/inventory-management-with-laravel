@@ -70,4 +70,22 @@ class MinioService
             }
         }, 100);
     }
+
+    /**
+     * Generate a temporary URL for a private file
+     */
+    public function getTemporaryUrl(string $path, int $minutes = 60): string
+    {
+        $disk = Storage::disk('minio_private');
+        
+        if (method_exists($disk, 'temporaryUrl')) {
+            try {
+                return $disk->temporaryUrl($path, now()->addMinutes($minutes));
+            } catch (Exception $e) {
+                Log::warning("Could not generate temporary URL: " . $e->getMessage());
+            }
+        }
+
+        return $disk->url($path);
+    }
 }
