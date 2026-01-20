@@ -11,10 +11,12 @@ use Illuminate\Support\Str;
 class JwtService
 {
     protected string $secret;
+    protected int $ttl;
 
     public function __construct()
     {
-        $this->secret = config('app.key');
+        $this->secret = config('app.key') ?? env('APP_KEY') ?? 'secret';
+        $this->ttl = 3600; // 1 hour default
     }
 
     public function generateAccessToken(int $userId, array $claims = [], int $ttlSeconds = 900): string
