@@ -1,0 +1,44 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${APP_IMAGE:-inventory-management-app}
+    container_name: inventory_app
+    restart: unless-stopped
+    networks:
+      - inventory-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - inventory_storage:/var/www/html/storage
+      - inventory_bootstrap_cache:/var/www/html/bootstrap/cache
+    healthcheck:
+      test: [ "CMD", "php-fpm-healthcheck" ]
+      # Manual alternative:
+      # test: ["CMD-SHELL", "cgi-fcgi -bind -connect 127.0.0.1:9000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: inventory_nginx
+    restart: unless-stopped
+    ports:
+      - "${DOCKER_APP_PORT_EXTERNAL:-80}:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - inventory-net
+    depends_on:
+      - app
+
+networks:
+  inventory-net:
+    driver: bridge
+
+volumes:
+  inventory_storage:
+  inventory_bootstrap_cache:
