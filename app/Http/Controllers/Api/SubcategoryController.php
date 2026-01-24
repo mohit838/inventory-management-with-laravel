@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SubcategoryResource;
-use App\Repositories\SubcategoryRepository;
+use App\Interfaces\SubcategoryRepositoryInterface;
 use Illuminate\Http\Request;
 
 class SubcategoryController extends Controller
 {
-    public function __construct(protected SubcategoryRepository $repo) {}
+    public function __construct(protected SubcategoryRepositoryInterface $repo) {}
 
     public function index(Request $request)
     {

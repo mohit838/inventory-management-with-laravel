@@ -47,15 +47,10 @@ COPY . .
 # ---------- Stage 2: Production ----------
 FROM php:8.3-fpm-alpine
 
-# Install validation/runtime dependencies
-# redis: for redis-cli in entrypoint
-# bash/curl: for entrypoint and general utility
-# Libraries needed for PHP extensions (must match build stage versions effectively)
+# Install runtime dependencies
 RUN apk add --no-cache \
     bash \
     curl \
-    supervisor \
-    redis \
     libzip \
     icu-libs \
     libpng \
@@ -74,16 +69,13 @@ RUN { \
     echo 'opcache.interned_strings_buffer=8'; \
     echo 'opcache.max_accelerated_files=10000'; \
     echo 'opcache.validate_timestamps=0'; \
-    } > /usr/local/etc/php/conf.d/opcache.ini
+    } > /usr/local/etc/php/conf.d/opcache.init
 
 # Set working directory
 WORKDIR /var/www/html
 
 # Copy application from build stage
 COPY --from=build /var/www/html /var/www/html
-
-# Copy .env.local as .env (BAKED SECRETS)
-COPY .env.local /var/www/html/.env
 
 # Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
@@ -92,9 +84,7 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Environment
-ENV PORT=4002
-EXPOSE 4002
+EXPOSE 9000
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=4002"]
+CMD ["php-fpm"]

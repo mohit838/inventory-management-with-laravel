@@ -9,8 +9,9 @@ pipeline {
   environment {
     IMAGE_PREFIX = 'inventory'
     DOCKER_CONFIG = "${WORKSPACE}/.docker"
-    CONTAINER_NAME = 'inventory_app'
-    BACKUP_CONTAINER_NAME = 'inventory_app_backup'
+    APP_CONTAINER_NAME = 'inventory_app'
+    NGINX_CONTAINER_NAME = 'inventory_nginx'
+    BACKUP_SUFFIX = '_backup'
   }
 
   stages {
@@ -76,42 +77,44 @@ pipeline {
       steps {
         sh '''
           set -e
-          echo "Building image ${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}"
-          docker build -t ${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT} .
+          echo "Building image ${IMAGE_PREFIX}-inventory-app:${GIT_COMMIT_SHORT}"
+          docker build -t ${IMAGE_PREFIX}-inventory-app:${GIT_COMMIT_SHORT} .
           
           # Tag as latest for easy reference
-          docker tag ${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT} ${IMAGE_PREFIX}-inventory:latest
+          docker tag ${IMAGE_PREFIX}-inventory-app:${GIT_COMMIT_SHORT} ${IMAGE_PREFIX}-inventory-app:latest
         '''
       }
     }
 
-    stage('Backup Current Container') {
+    stage('Backup Current Containers') {
       steps {
         sh '''
           set +e
-          # Check if current container exists
-          if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-            echo "Backing up current container as ${BACKUP_CONTAINER_NAME}"
-            docker rename ${CONTAINER_NAME} ${BACKUP_CONTAINER_NAME} || true
-          else
-            echo "No existing container to backup"
+          # Backup App
+          if docker ps -a --format '{{.Names}}' | grep -q "^${APP_CONTAINER_NAME}$"; then
+            echo "Backing up ${APP_CONTAINER_NAME}"
+            docker rename ${APP_CONTAINER_NAME} ${APP_CONTAINER_NAME}${BACKUP_SUFFIX} || true
+          fi
+          # Backup Nginx
+          if docker ps -a --format '{{.Names}}' | grep -q "^${NGINX_CONTAINER_NAME}$"; then
+            echo "Backing up ${NGINX_CONTAINER_NAME}"
+            docker rename ${NGINX_CONTAINER_NAME} ${NGINX_CONTAINER_NAME}${BACKUP_SUFFIX} || true
           fi
         '''
       }
     }
 
-    stage('Deploy New Container') {
+    stage('Deploy New Containers') {
       steps {
         sh '''
           set -e
-          export APP_IMAGE=${IMAGE_PREFIX}-inventory:${GIT_COMMIT_SHORT}
+          export APP_IMAGE=${IMAGE_PREFIX}-inventory-app:${GIT_COMMIT_SHORT}
           export GIT_COMMIT_SHORT=${GIT_COMMIT_SHORT}
 
-          # Deploy new container
+          # Deploy new containers
           docker compose --env-file .env -f docker-compose.yml up -d --remove-orphans
 
-          echo "New container deployed successfully"
-          docker ps --filter "name=${CONTAINER_NAME}"
+          echo "New containers deployed successfully"
         '''
       }
     }
@@ -120,7 +123,7 @@ pipeline {
       steps {
         sh '''
           set -e
-          echo "Waiting for container to be healthy..."
+          echo "Waiting for app container to be healthy..."
           
           # Wait up to 60 seconds for health check to pass
           TIMEOUT=60
@@ -128,7 +131,7 @@ pipeline {
           INTERVAL=5
           
           while [ $ELAPSED -lt $TIMEOUT ]; do
-            HEALTH_STATUS=$(docker inspect --format='{{.State.Health.Status}}' ${CONTAINER_NAME} 2>/dev/null || echo "unknown")
+            HEALTH_STATUS=$(docker inspect --format='{{.State.Health.Status}}' ${APP_CONTAINER_NAME} 2>/dev/null || echo "unknown")
             
             echo "Health status: $HEALTH_STATUS (elapsed: ${ELAPSED}s)"
             
@@ -139,7 +142,7 @@ pipeline {
             
             if [ "$HEALTH_STATUS" = "unhealthy" ]; then
               echo "Container became unhealthy!"
-              docker logs --tail=50 ${CONTAINER_NAME}
+              docker logs --tail=50 ${APP_CONTAINER_NAME}
               exit 1
             fi
             
@@ -148,21 +151,27 @@ pipeline {
           done
           
           echo "Health check timeout after ${TIMEOUT}s"
-          docker logs --tail=50 ${CONTAINER_NAME}
+          docker logs --tail=50 ${APP_CONTAINER_NAME}
           exit 1
         '''
       }
     }
 
-    stage('Cleanup Old Container') {
+    stage('Cleanup Old Containers') {
       steps {
         sh '''
           set +e
-          # Remove backup container if deployment was successful
-          if docker ps -a --format '{{.Names}}' | grep -q "^${BACKUP_CONTAINER_NAME}$"; then
-            echo "Removing old backup container"
-            docker stop ${BACKUP_CONTAINER_NAME} || true
-            docker rm ${BACKUP_CONTAINER_NAME} || true
+          # Remove backup App
+          if docker ps -a --format '{{.Names}}' | grep -q "^${APP_CONTAINER_NAME}${BACKUP_SUFFIX}$"; then
+            echo "Removing old backup app container"
+            docker stop ${APP_CONTAINER_NAME}${BACKUP_SUFFIX} || true
+            docker rm ${APP_CONTAINER_NAME}${BACKUP_SUFFIX} || true
+          fi
+          # Remove backup Nginx
+          if docker ps -a --format '{{.Names}}' | grep -q "^${NGINX_CONTAINER_NAME}${BACKUP_SUFFIX}$"; then
+            echo "Removing old backup nginx container"
+            docker stop ${NGINX_CONTAINER_NAME}${BACKUP_SUFFIX} || true
+            docker rm ${NGINX_CONTAINER_NAME}${BACKUP_SUFFIX} || true
           fi
         '''
       }
@@ -175,10 +184,10 @@ pipeline {
           echo "Cleaning up old images (keeping last 3 versions)..."
           
           # Keep only the 3 most recent images
-          docker images ${IMAGE_PREFIX}-inventory --format "{{.Tag}}" | \
+          docker images ${IMAGE_PREFIX}-inventory-app --format "{{.Tag}}" | \
             grep -v "latest" | \
             tail -n +4 | \
-            xargs -I {} docker rmi ${IMAGE_PREFIX}-inventory:{} || true
+            xargs -I {} docker rmi ${IMAGE_PREFIX}-inventory-app:{} || true
           
           # Prune dangling images
           docker image prune -f || true
@@ -193,24 +202,23 @@ pipeline {
       sh '''
         set +e
         
-        # Show logs from failed container
-        echo "=== Failed Container Logs ==="
-        docker logs --tail=100 ${CONTAINER_NAME} || true
+        # Stop and remove failed containers
+        docker stop ${APP_CONTAINER_NAME} ${NGINX_CONTAINER_NAME} || true
+        docker rm ${APP_CONTAINER_NAME} ${NGINX_CONTAINER_NAME} || true
         
-        # Stop and remove failed container
-        docker stop ${CONTAINER_NAME} || true
-        docker rm ${CONTAINER_NAME} || true
-        
-        # Restore backup if it exists
-        if docker ps -a --format '{{.Names}}' | grep -q "^${BACKUP_CONTAINER_NAME}$"; then
-          echo "Restoring backup container..."
-          docker rename ${BACKUP_CONTAINER_NAME} ${CONTAINER_NAME} || true
-          docker start ${CONTAINER_NAME} || true
-          echo "Rollback complete"
-        else
-          echo "No backup container available for rollback"
+        # Restore backups
+        if docker ps -a --format '{{.Names}}' | grep -q "^${APP_CONTAINER_NAME}${BACKUP_SUFFIX}$"; then
+          echo "Restoring backup app container..."
+          docker rename ${APP_CONTAINER_NAME}${BACKUP_SUFFIX} ${APP_CONTAINER_NAME} || true
+          docker start ${APP_CONTAINER_NAME} || true
+        fi
+        if docker ps -a --format '{{.Names}}' | grep -q "^${NGINX_CONTAINER_NAME}${BACKUP_SUFFIX}$"; then
+          echo "Restoring backup nginx container..."
+          docker rename ${NGINX_CONTAINER_NAME}${BACKUP_SUFFIX} ${NGINX_CONTAINER_NAME} || true
+          docker start ${NGINX_CONTAINER_NAME} || true
         fi
         
+        echo "Rollback complete"
         docker ps
       '''
     }
@@ -219,7 +227,6 @@ pipeline {
       echo "Cleanup workspace..."
       sh '''
         set +e
-        # Clean up workspace but keep .env for debugging if needed
         rm -f .env || true
       '''
       cleanWs()
@@ -227,14 +234,6 @@ pipeline {
 
     success {
       echo "Deployment successful! Version: ${GIT_COMMIT_SHORT}"
-      sh '''
-        echo "=== Deployed Container Info ==="
-        docker ps --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-        
-        echo ""
-        echo "=== Container Labels ==="
-        docker inspect ${CONTAINER_NAME} --format='{{range $k, $v := .Config.Labels}}{{$k}}={{$v}}{{println}}{{end}}'
-      '''
     }
   }
 }

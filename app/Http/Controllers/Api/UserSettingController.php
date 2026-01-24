@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\UserSettingRepository;
+use App\Interfaces\UserSettingRepositoryInterface;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'User Settings', description: 'API Endpoints for User Settings')]
 class UserSettingController extends Controller
 {
-    public function __construct(protected UserSettingRepository $repo) {}
+    public function __construct(protected UserSettingRepositoryInterface $repo) {}
 
     #[OA\Get(
         path: '/api/v1/settings',

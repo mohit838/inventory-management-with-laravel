@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Models\RefreshToken;
 use App\Models\User;
 use App\Services\JwtService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Auth', description: 'API Endpoints for Authentication')]
@@ -88,16 +90,16 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
         if (! $user || ! Hash::check($request->password, $user->password)) {
-            \Illuminate\Support\Facades\Log::warning("Login failed for email: {$request->email}");
+            Log::warning("Login failed for email: {$request->email}");
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         if (! $user->active) {
-            \Illuminate\Support\Facades\Log::warning("Inactive user login attempt: {$request->email}");
+            Log::warning("Inactive user login attempt: {$request->email}");
             return response()->json(['message' => 'Account is inactive'], 403);
         }
 
-        \Illuminate\Support\Facades\Log::info("User logged in: {$user->id}");
+        Log::info("User logged in: {$user->id}");
 
         $access = $this->jwt->generateAccessToken($user->id, ['role' => $user->role]);
         $refresh = $this->jwt->createRefreshToken($user->id);
@@ -135,7 +137,7 @@ class AuthController extends Controller
         ]);
 
         $hash = hash('sha256', $request->refresh_token);
-        $rt = \App\Models\RefreshToken::where('token', $hash)->where('revoked', false)->first();
+        $rt = RefreshToken::where('token', $hash)->where('revoked', false)->first();
         if (! $rt || ($rt->expires_at && $rt->expires_at->isPast())) {
             return response()->json(['message' => 'Invalid refresh token'], 401);
         }

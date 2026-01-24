@@ -3,10 +3,11 @@
 namespace App\Observers;
 
 use App\Models\Product;
+use App\Services\AuditService;
 
 class ProductObserver
 {
-    public function __construct(protected \App\Services\AuditService $audit) {}
+    public function __construct(protected AuditService $audit) {}
 
     /**
      * Handle the Product "created" event.

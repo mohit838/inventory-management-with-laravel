@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderStoreRequest;
+use App\Services\AuditService;
 use App\Services\OrderService;
+use Exception;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Orders', description: 'API Endpoints for Orders')]
@@ -12,7 +15,7 @@ class OrderController extends Controller
 {
     public function __construct(
         protected OrderService $service,
-        protected \App\Services\AuditService $audit
+        protected AuditService $audit
     ) {}
 
     #[OA\Post(
@@ -51,12 +54,12 @@ class OrderController extends Controller
         try {
             $order = $this->service->createOrder($request->validated(), $request->user() ? $request->user()->id : 0);
 
-            \Illuminate\Support\Facades\Log::info("Order created: {$order->id}");
+            Log::info("Order created: {$order->id}");
             $this->audit->log('order.created', "Created Order #{$order->id} for {$order->customer_name}", $order);
 
             return response()->json(['data' => $this->formatOrder($order)], 201);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Order creation failed: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Order creation failed: " . $e->getMessage());
             return response()->json(['message' => $e->getMessage()], 400);
         }
     }
@@ -78,11 +81,11 @@ class OrderController extends Controller
         try {
             $invoice = $this->service->generateInvoice($id);
             
-            \Illuminate\Support\Facades\Log::info("Invoice generated for Order: {$id}");
+            Log::info("Invoice generated for Order: {$id}");
 
             return response()->json(['data' => $invoice]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Invoice generation failed: " . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error("Invoice generation failed: " . $e->getMessage());
             return response()->json(['message' => 'Invoice generation failed'], 500);
         }
     }

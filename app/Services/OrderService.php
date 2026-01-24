@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Models\Order;
 use App\Models\Product;
-use App\Repositories\OrderRepository;
+use App\Interfaces\OrderRepositoryInterface;
 use App\Services\InvoiceService;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -13,14 +14,14 @@ use Illuminate\Support\Facades\DB;
 class OrderService
 {
     public function __construct(
-        protected OrderRepository $orderRepo,
+        protected OrderRepositoryInterface $orderRepo,
         protected InvoiceService $invoiceGenerator
     ) {}
 
     /**
      * Create a new order with stock validation and deduction.
      */
-    public function createOrder(array $data, int $userId): \App\Models\Order
+    public function createOrder(array $data, int $userId): Order
     {
         return DB::transaction(function () use ($data, $userId) {
             $itemsData = [];

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Exception;
+use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -47,7 +48,7 @@ class MinioService
                 $filename = trim($directory, '/') . '/' . uniqid() . '.webp';
 
                 // 3. Storage interaction
-                /** @var \Illuminate\Contracts\Filesystem\Cloud $storage */
+                /** @var Cloud $storage */
                 $storage = Storage::disk($disk);
                 
                 if (! $storage->put($filename, (string) $encoded)) {

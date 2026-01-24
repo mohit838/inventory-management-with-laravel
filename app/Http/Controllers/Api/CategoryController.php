@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CategoryResource;
-use App\Repositories\CategoryRepository;
+use App\Interfaces\CategoryRepositoryInterface;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function __construct(protected CategoryRepository $repo) {}
+    public function __construct(protected CategoryRepositoryInterface $repo) {}
 
     public function index(Request $request)
     {

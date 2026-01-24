@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -12,9 +15,9 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'status' => \App\Enums\OrderStatus::class,
-        'payment_method' => \App\Enums\PaymentMethod::class,
-        'payment_status' => \App\Enums\PaymentStatus::class,
+        'status' => OrderStatus::class,
+        'payment_method' => PaymentMethod::class,
+        'payment_status' => PaymentStatus::class,
         'total_amount' => 'decimal:2',
     ];
 

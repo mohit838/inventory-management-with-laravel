@@ -113,7 +113,7 @@ class CategoryDoc
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 24, description: 'Category deleted'),
+            new OA\Response(response: 204, description: 'Category deleted'),
         ]
     )]
     public function destroy() {}

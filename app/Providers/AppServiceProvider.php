@@ -2,6 +2,19 @@
 
 namespace App\Providers;
 
+use App\Interfaces\AnalyticsServiceInterface;
+use App\Interfaces\CacheServiceInterface;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Subcategory;
+use App\Observers\CategoryObserver;
+use App\Observers\ProductObserver;
+use App\Observers\SubcategoryObserver;
+use App\Services\RedisCacheService;
+use App\Services\SqlAnalyticsService;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,13 +40,13 @@ class AppServiceProvider extends ServiceProvider
         // Since OrderService uses InvoiceService directly, we don't need these non-existent bindings.
 
         $this->app->bind(
-            \App\Interfaces\AnalyticsServiceInterface::class,
-            \App\Services\SqlAnalyticsService::class
+            AnalyticsServiceInterface::class,
+            SqlAnalyticsService::class
         );
 
         $this->app->singleton(
-            \App\Interfaces\CacheServiceInterface::class,
-            \App\Services\RedisCacheService::class
+            CacheServiceInterface::class,
+            RedisCacheService::class
         );
     }
 
@@ -42,15 +55,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (config('app.env') === 'production' || \Illuminate\Support\Facades\Request::header('X-Forwarded-Proto') == 'https') {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+        if (config('app.env') === 'production' || Request::header('X-Forwarded-Proto') == 'https') {
+            URL::forceScheme('https');
         }
 
-        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
-        \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
-        \App\Models\Subcategory::observe(\App\Observers\SubcategoryObserver::class);
+        Product::observe(ProductObserver::class);
+        Category::observe(CategoryObserver::class);
+        Subcategory::observe(SubcategoryObserver::class);
 
-        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
+        Gate::before(function ($user, $ability) {
             // Check if user has permission (via HasPermissions trait)
             // This handles Superadmin bypass (returns true) and direct permission check.
             if (method_exists($user, 'hasPermissionTo')) {

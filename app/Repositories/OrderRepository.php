@@ -2,9 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Interfaces\OrderRepositoryInterface;
 use App\Models\Order;
 
-class OrderRepository extends EloquentBaseRepository
+class OrderRepository extends EloquentBaseRepository implements OrderRepositoryInterface
 {
     public function __construct(Order $model)
     {

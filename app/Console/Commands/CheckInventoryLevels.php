@@ -2,7 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Product;
+use App\Models\User;
+use App\Notifications\LowStockAlert;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Notification;
 
 class CheckInventoryLevels extends Command
 {
@@ -15,7 +19,7 @@ class CheckInventoryLevels extends Command
         $this->info('Checking inventory levels...');
 
         // 1. Get Low Stock Products using Same Logic as Analytics
-        $lowStockProducts = \App\Models\Product::select('products.*')
+        $lowStockProducts = Product::select('products.*')
             ->join('categories', 'products.category_id', '=', 'categories.id')
             ->where('products.quantity', '>', 0)
             ->whereRaw('products.quantity <= COALESCE(products.low_stock_threshold, categories.low_stock_threshold, 10)')
@@ -30,7 +34,7 @@ class CheckInventoryLevels extends Command
         }
 
         // 2. Notify Admins
-        $admins = \App\Models\User::whereIn('role', ['superadmin', 'admin'])->get();
+        $admins = User::whereIn('role', ['superadmin', 'admin'])->get();
 
         foreach ($lowStockProducts as $product) {
             $threshold = $product->low_stock_threshold ?? $product->category->low_stock_threshold ?? 10;
@@ -38,7 +42,7 @@ class CheckInventoryLevels extends Command
             // Optimization: In real app, check if notification already sent recently (Cache lock)
             // For now, valid MVP sends trigger on run.
 
-            \Illuminate\Support\Facades\Notification::send($admins, new \App\Notifications\LowStockAlert($product, $threshold));
+            Notification::send($admins, new LowStockAlert($product, $threshold));
             $this->info("Low Stock Alert Sent: {$product->name} ({$product->quantity} <= {$threshold})");
         }
 

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductStoreRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Http\Resources\ProductResource;
-use App\Repositories\ProductRepository;
+use App\Interfaces\ProductRepositoryInterface;
 use App\Services\MinioService;
 use App\Traits\PaginationTrait;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ class ProductController extends Controller
     use PaginationTrait;
 
     public function __construct(
-        protected ProductRepository $repo,
+        protected ProductRepositoryInterface $repo,
         protected MinioService $minio
     ) {}
 
