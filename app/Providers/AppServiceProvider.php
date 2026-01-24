@@ -25,13 +25,17 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         if (! defined('L5_SWAGGER_CONST_HOST')) {
-            $host = env('L5_SWAGGER_CONST_HOST', config('app.url'));
+            $host = env('L5_SWAGGER_CONST_HOST');
 
-            // Ensure schema matches APP_URL to avoid mixed content
-            $appUrlScheme = parse_url(config('app.url'), PHP_URL_SCHEME);
-            if ($appUrlScheme && !str_starts_with($host, $appUrlScheme . '://')) {
-                $host = preg_replace('/^https?:\/\//', '', $host);
-                $host = $appUrlScheme . '://' . $host;
+            if (!$host) {
+                // Default to app.url but allow dynamic detection if available
+                $host = config('app.url');
+            }
+
+            // If a relative path is provided, use it as is.
+            // If not, and we are NOT in console, use current request URL to avoid mixed content.
+            if (!app()->runningInConsole() && !str_starts_with($host, '/') && !str_starts_with($host, 'http')) {
+                $host = url('/');
             }
 
             define('L5_SWAGGER_CONST_HOST', $host);
