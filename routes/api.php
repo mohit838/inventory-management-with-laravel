@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
@@ -69,6 +70,6 @@ Route::prefix('v1')->group(function () {
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
         // Audit Logs
-        Route::get('audit-logs', [\App\Http\Controllers\Api\AuditLogController::class, 'index']);
+        Route::get('audit-logs', [AuditLogController::class, 'index']);
     });
 });

@@ -6,11 +6,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\ActiveScope;
+use App\Traits\HasPermissions;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use \App\Traits\ActiveScope, \App\Traits\HasPermissions, HasFactory, \Illuminate\Database\Eloquent\SoftDeletes, Notifiable;
+    use ActiveScope, HasPermissions, HasFactory, SoftDeletes, Notifiable;
 
     const ROLE_SUPERADMIN = 'superadmin';
 
