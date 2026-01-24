@@ -87,3 +87,20 @@ php artisan l5-swagger:generate
 -   **Responses**: Use `JsonResource`.
 -   **Business Logic**: Keep controllers thin; use `Services`.
 -   **Data Access**: Always use `Repositories` via their `Interfaces`.
+
+---
+
+## 🎓 Study & Recap: The `app` Directory
+
+A quick guide to understanding where code lives and when to use it.
+
+| Directory | Purpose | When to use? | Example |
+| :--- | :--- | :--- | :--- |
+| **`Http/Controllers`** | Entry point for requests. | Only for receiving requests, validating (via FormRequest), and returning responses. **Never** put business logic here. | `ProductController::store` |
+| **`Http/Requests`** | Validation logic. | Use when you need to validate incoming data (POST/PUT). Keeps controllers clean. | `ProductStoreRequest` |
+| **`Http/Resources`** | Data transformation. | Use to format how your data looks in the API response (e.g., hiding database columns). | `ProductResource` |
+| **`Interfaces`** | Contracts/Blueprints. | Always create an interface before a repository. Defines *what* methods exist, not *how* they work. | `ProductRepositoryInterface` |
+| **`Repositories`** | Database queries. | Use for all Eloquent/DB logic (create, find, search). **Never** call `Model::create` in a controller. | `ProductRepository` |
+| **`Services`** | Business Logic. | Use for complex logic involving multiple models, calculations, or external APIs (e.g., Stripe, MinIO). | `OrderService`, `MinioService` |
+| **`Models`** | Database structure. | Use for defining relationships (`hasMany`), fillable fields, and scopes. | `Product` |
+| **`Observers`** | Event Listeners. | Use to hook into model events (created, updated) for side effects like Logging. | `ProductObserver` |

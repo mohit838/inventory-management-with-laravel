@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\LogViewerController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
@@ -68,6 +69,13 @@ Route::prefix('v1')->group(function () {
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
+
+        // Admin Logs
+        Route::prefix('admin')->group(function () {
+            Route::get('logs', [LogViewerController::class, 'index'])->middleware('role:superadmin');
+            Route::delete('logs', [LogViewerController::class, 'destroy'])->middleware('role:superadmin');
+        });
 
         // Audit Logs
         Route::get('audit-logs', [AuditLogController::class, 'index']);

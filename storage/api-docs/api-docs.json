@@ -958,6 +958,58 @@
                 ]
             }
         },
+        "/api/v1/admin/logs": {
+            "get": {
+                "tags": [
+                    "Admin Logs"
+                ],
+                "summary": "Get application logs (Superadmin only)",
+                "operationId": "8cb421c805c934877d5ba9ab3972371d",
+                "parameters": [
+                    {
+                        "name": "lines",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return log lines"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Admin Logs"
+                ],
+                "summary": "Clear application logs (Superadmin only)",
+                "operationId": "e781f97fe57d0024347563deb6c2795a",
+                "responses": {
+                    "200": {
+                        "description": "Logs cleared successfully"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/v1/notifications": {
             "get": {
                 "tags": [
@@ -1240,6 +1292,10 @@
         {
             "name": "Dashboard",
             "description": "API Endpoints for Dashboard Analytics"
+        },
+        {
+            "name": "Admin Logs",
+            "description": "API Endpoints for viewing application logs (Superadmin only)"
         },
         {
             "name": "Notifications",
