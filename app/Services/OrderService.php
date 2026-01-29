@@ -76,4 +76,14 @@ class OrderService
 
         return $this->invoiceGenerator->generate($order);
     }
+
+    public function getAllOrders(int $perPage = 15)
+    {
+        return $this->orderRepo->paginate($perPage, ['*'], ['items']);
+    }
+
+    public function getOrderById(int $id)
+    {
+        return $this->orderRepo->find($id, ['items.product']);
+    }
 }

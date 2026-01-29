@@ -58,7 +58,9 @@ Route::prefix('v1')->group(function () {
         Route::post('settings', [UserSettingController::class, 'update'])->middleware('permission:settings.manage');
 
         // Orders
+        Route::get('orders', [OrderController::class, 'index'])->middleware('permission:orders.view');
         Route::post('orders', [OrderController::class, 'store'])->middleware('permission:orders.create');
+        Route::get('orders/{id}', [OrderController::class, 'show'])->middleware('permission:orders.view');
         Route::get('orders/{id}/invoice', [OrderController::class, 'invoice'])->middleware('permission:orders.view');
 
         // Dashboard

@@ -68,6 +68,44 @@ class OrderController extends Controller
     }
 
     #[OA\Get(
+        path: '/api/v1/orders',
+        tags: ['Orders'],
+        summary: 'List all orders',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'per_page', in: 'query', schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Successful operation'),
+        ]
+    )]
+    public function index()
+    {
+        $orders = $this->service->getAllOrders(request('per_page', 15));
+        return OrderResource::collection($orders);
+    }
+
+    #[OA\Get(
+        path: '/api/v1/orders/{id}',
+        tags: ['Orders'],
+        summary: 'Get order details',
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Successful operation'),
+            new OA\Response(response: 404, description: 'Order not found'),
+        ]
+    )]
+    public function show(int $id)
+    {
+        $order = $this->service->getOrderById($id);
+        return new OrderResource($order);
+    }
+
+    #[OA\Get(
         path: '/api/v1/orders/{id}/invoice',
         tags: ['Orders'],
         summary: 'Generate invoice for an order',

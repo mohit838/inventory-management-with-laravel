@@ -3,9 +3,11 @@
 This document provides a comprehensive guide to the API endpoints available for the inventory management system.
 
 ## Base URL
+
 `https://api.example.com/api/v1` (Replace with your actual API host)
 
 ## Authentication
+
 Most endpoints require a JWT token in the `Authorization` header:
 `Authorization: Bearer <your_access_token>`
 
@@ -14,7 +16,9 @@ Most endpoints require a JWT token in the `Authorization` header:
 ## 1. Authentication Endpoints
 
 ### Register
+
 `POST /register`
+
 - **Request Body:**
   ```json
   {
@@ -40,7 +44,9 @@ Most endpoints require a JWT token in the `Authorization` header:
   ```
 
 ### Login
+
 `POST /login`
+
 - **Request Body:**
   ```json
   {
@@ -67,7 +73,9 @@ Most endpoints require a JWT token in the `Authorization` header:
   ```
 
 ### Refresh Token
+
 `POST /refresh`
+
 - **Request Body:**
   ```json
   {
@@ -76,7 +84,9 @@ Most endpoints require a JWT token in the `Authorization` header:
   ```
 
 ### Logout
+
 `POST /logout`
+
 - **Request Body (Optional):**
   ```json
   {
@@ -89,7 +99,9 @@ Most endpoints require a JWT token in the `Authorization` header:
 ## 2. Categories
 
 ### List Categories
+
 `GET /categories`
+
 - **Query Params:** `page`, `per_page`, `search` (optional)
 - **Response:**
   ```json
@@ -106,12 +118,22 @@ Most endpoints require a JWT token in the `Authorization` header:
       }
     ],
     "links": { "first": "...", "last": "...", "prev": null, "next": null },
-    "meta": { "current_page": 1, "from": 1, "last_page": 1, "path": "...", "per_page": 15, "to": 1, "total": 1 }
+    "meta": {
+      "current_page": 1,
+      "from": 1,
+      "last_page": 1,
+      "path": "...",
+      "per_page": 15,
+      "to": 1,
+      "total": 1
+    }
   }
   ```
 
 ### Create Category
+
 `POST /categories`
+
 - **Request Body:**
   ```json
   {
@@ -121,11 +143,15 @@ Most endpoints require a JWT token in the `Authorization` header:
   ```
 
 ### Toggle Active Status
+
 `POST /categories/{id}/toggle-active`
+
 - **Response:** (Returns the updated category resource)
 
 ### Dropdown (Optimized)
+
 `GET /categories/dropdown`
+
 - **Response:**
   ```json
   {
@@ -139,7 +165,9 @@ Most endpoints require a JWT token in the `Authorization` header:
 ---
 
 ## 3. Subcategories
+
 Endpoints are identical in structure to Categories.
+
 - `GET /subcategories`
 - `POST /subcategories`
 - `GET /subcategories/{id}`
@@ -153,7 +181,9 @@ Endpoints are identical in structure to Categories.
 ## 4. Products
 
 ### List Products
+
 `GET /products`
+
 - **Query Params:** `page`, `per_page`, `search`
 - **Response:**
   ```json
@@ -177,17 +207,19 @@ Endpoints are identical in structure to Categories.
   ```
 
 ### Create Product
+
 `POST /products` (Use `multipart/form-data` if uploading an image)
+
 - **Fields:** `category_id`, `subcategory_id` (optional), `name`, `sku`, `price`, `quantity`, `description`, `image` (file)
 
 ### Dropdown (Optimized for Sales)
+
 `GET /products/dropdown`
+
 - **Response:**
   ```json
   {
-    "data": [
-      { "id": 1, "name": "iPhone 15", "sku": "IPH15-BLK" }
-    ]
+    "data": [{ "id": 1, "name": "iPhone 15", "sku": "IPH15-BLK" }]
   }
   ```
 
@@ -195,17 +227,64 @@ Endpoints are identical in structure to Categories.
 
 ## 5. Orders
 
+### List Orders
+
+`GET /orders`
+
+- **Query Params:** `page`, `per_page`
+- **Response:**
+  ```json
+  {
+    "data": [
+      {
+        "id": 101,
+        "customer_name": "Jane Smith",
+        "total_amount": 1999.98,
+        "status": "pending",
+        "created_at": "2023-10-27 11:00:00"
+      }
+    ],
+    "links": { "first": "...", "last": "...", "prev": null, "next": null },
+    "meta": { "current_page": 1, "total": 1 }
+  }
+  ```
+
+### Get Order Details
+
+`GET /orders/{id}`
+
+- **Response:**
+  ```json
+  {
+    "data": {
+      "id": 101,
+      "customer_name": "Jane Smith",
+      "total_amount": 1999.98,
+      "status": "pending",
+      "items": [
+        {
+          "product_id": 1,
+          "product_name": "iPhone 15",
+          "quantity": 2,
+          "unit_price": 999.99,
+          "total_price": 1999.98
+        }
+      ]
+    }
+  }
+  ```
+
 ### Create Order
+
 `POST /orders`
+
 - **Request Body:**
   ```json
   {
     "customer_name": "Jane Smith",
     "customer_email": "jane@example.com",
     "payment_method": "online",
-    "items": [
-      { "product_id": 1, "quantity": 2 }
-    ]
+    "items": [{ "product_id": 1, "quantity": 2 }]
   }
   ```
 - **Response (201 Created):**
@@ -233,7 +312,9 @@ Endpoints are identical in structure to Categories.
   ```
 
 ### Get Invoice
+
 `GET /orders/{id}/invoice`
+
 - **Response:**
   ```json
   {
@@ -251,55 +332,62 @@ Endpoints are identical in structure to Categories.
 ## 6. Dashboard & Analytics
 
 ### Summary
+
 `GET /dashboard/summary`
+
 - **Response:**
-  ```json
   {
+    "status": "success",
     "data": {
-      "total_products": 150,
+      "total_products": 4821,
+      "total_categories": 12,
       "low_stock_count": 5,
-      "out_of_stock_count": 2,
-      "total_orders": 25,
-      "total_revenue": 15450.50,
-      "pending_orders_count": 3,
+      "total_value": 92450,
       "top_categories": [
-        { "name": "Electronics", "total_sold": 85 }
+        { "name": "Electronics", "total_sold": 1200 },
+        { "name": "Clothing", "total_sold": 950 }
       ]
     }
   }
-  ```
 
 ### Sales Chart
+
 `GET /dashboard/chart`
+
 - **Query Param:** `period=monthly`
 - **Response:**
-  ```json
   {
+    "status": "success",
     "data": {
-      "labels": ["Jan", "Feb", "Mar", ...],
-      "data": [1200, 1500, 1100, ...]
+      "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      "data": [1200, 1500, 1100, 1800, 2000, 1700]
     }
   }
-  ```
 
 ---
 
 ## 7. Miscellaneous
 
 ### User Settings
+
 - `GET /settings`: Get all settings for current user.
 - `POST /settings`: Update settings. Body: `{"key": "value"}`
 
 ### Public Image Upload
+
 `POST /uploads/public`
+
 - **Fields:** `image` (file)
 - **Response:** `{"data": {"url": "..."}}`
 
 ### Notifications
+
 - `GET /notifications`: List user notifications.
 - `PATCH /notifications/{id}/read`: Mark one as read.
 - `PATCH /notifications/read-all`: Mark all as read.
 
 ### Audit Logs
+
 `GET /audit-logs`
+
 - **Response:** Paginated list of system actions (e.g., "Product Created").

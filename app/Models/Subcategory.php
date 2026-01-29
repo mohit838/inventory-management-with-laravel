@@ -11,7 +11,7 @@ class Subcategory extends Model
 {
     use ActiveScope, HasFactory, SoftDeletes;
 
-    protected $fillable = ['category_id', 'name', 'slug', 'active'];
+    protected $fillable = ['category_id', 'name', 'slug', 'description', 'active'];
 
     public function category()
     {
