@@ -2,10 +2,10 @@
 
 namespace App\Repositories;
 
-use App\Interfaces\UserSettingRepositoryInterface;
+use App\Interfaces\BaseRepositoryInterface;
 use App\Models\UserSetting;
 
-class UserSettingRepository extends EloquentBaseRepository implements UserSettingRepositoryInterface
+class UserSettingRepository extends EloquentBaseRepository implements BaseRepositoryInterface
 {
     public function __construct(UserSetting $model)
     {

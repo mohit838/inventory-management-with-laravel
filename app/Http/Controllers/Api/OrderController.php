@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrderStoreRequest;
+use App\Http\Resources\OrderResource;
 use App\Services\AuditService;
 use App\Services\OrderService;
 use Exception;
@@ -57,7 +58,9 @@ class OrderController extends Controller
             Log::info("Order created: {$order->id}");
             $this->audit->log('order.created', "Created Order #{$order->id} for {$order->customer_name}", $order);
 
-            return response()->json(['data' => $this->formatOrder($order)], 201);
+            return (new OrderResource($order->load('items')))
+                ->response()
+                ->setStatusCode(201);
         } catch (Exception $e) {
             Log::error("Order creation failed: " . $e->getMessage());
             return response()->json(['message' => $e->getMessage()], 400);
@@ -88,27 +91,5 @@ class OrderController extends Controller
             Log::error("Invoice generation failed: " . $e->getMessage());
             return response()->json(['message' => 'Invoice generation failed'], 500);
         }
-    }
-
-    private function formatOrder($order)
-    {
-        return [
-            'id' => $order->id,
-            'customer_name' => $order->customer_name,
-            'total_amount' => (float) $order->total_amount,
-            'status' => $order->status,
-            'payment_method' => $order->payment_method,
-            'payment_status' => $order->payment_status,
-            'items' => $order->relationLoaded('items') ? $order->items->map(function($item) {
-                return [
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product->name ?? 'Deleted Product',
-                    'quantity' => (int) $item->quantity,
-                    'unit_price' => (float) $item->unit_price,
-                    'total_price' => (float) $item->total_price,
-                ];
-            }) : [],
-            'created_at' => $order->created_at->toDateTimeString(),
-        ];
     }
 }

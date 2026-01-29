@@ -23,4 +23,6 @@ interface BaseRepositoryInterface
     public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = []);
 
     public function search(string $term, array $searchableFields, int $perPage = 15, array $relations = []);
+
+    public function toggleActive($id);
 }

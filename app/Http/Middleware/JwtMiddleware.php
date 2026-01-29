@@ -8,6 +8,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class JwtMiddleware
 {
@@ -23,7 +24,7 @@ class JwtMiddleware
         try {
             $secret = config('app.key');
             $decoded = JWT::decode($token, new Key($secret, 'HS256'));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json(['message' => 'Invalid token'], 401);
         }
 

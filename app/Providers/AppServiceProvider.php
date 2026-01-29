@@ -2,8 +2,6 @@
 
 namespace App\Providers;
 
-use App\Interfaces\AnalyticsServiceInterface;
-use App\Interfaces\CacheServiceInterface;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Subcategory;
@@ -43,15 +41,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Since OrderService uses InvoiceService directly, we don't need these non-existent bindings.
 
-        $this->app->bind(
-            AnalyticsServiceInterface::class,
-            SqlAnalyticsService::class
-        );
-
-        $this->app->singleton(
-            CacheServiceInterface::class,
-            RedisCacheService::class
-        );
     }
 
     /**
