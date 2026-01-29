@@ -6,7 +6,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\Product;
-use App\Interfaces\OrderRepositoryInterface;
+use App\Repositories\OrderRepository;
 use App\Services\InvoiceService;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class OrderService
 {
     public function __construct(
-        protected OrderRepositoryInterface $orderRepo,
+        protected OrderRepository $orderRepo,
         protected InvoiceService $invoiceGenerator
     ) {}
 

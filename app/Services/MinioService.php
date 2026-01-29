@@ -7,7 +7,7 @@ use Illuminate\Contracts\Filesystem\Cloud;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Drivers\Gd\Driver; // Using GD by default
+use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
 class MinioService

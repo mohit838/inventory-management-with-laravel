@@ -4,16 +4,15 @@ namespace App\Services;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Interfaces\AnalyticsServiceInterface;
-use App\Interfaces\CacheServiceInterface;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\RedisCacheService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class SqlAnalyticsService implements AnalyticsServiceInterface
+class SqlAnalyticsService
 {
-    public function __construct(protected CacheServiceInterface $cache) {}
+    public function __construct(protected RedisCacheService $cache) {}
 
     public function getSummary(int $userId, bool $includeRevenue = true): array
     {
@@ -99,7 +98,7 @@ class SqlAnalyticsService implements AnalyticsServiceInterface
 
                 return [
                     'labels' => $labels,
-                    'values' => $values,
+                    'data' => $values,
                 ];
             }
 

@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DashboardSummaryResource;
-use App\Interfaces\AnalyticsServiceInterface;
+use App\Services\SqlAnalyticsService;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(name: 'Dashboard', description: 'API Endpoints for Dashboard Analytics')]
 class DashboardController extends Controller
 {
-    public function __construct(protected AnalyticsServiceInterface $analytics) {}
+    public function __construct(protected SqlAnalyticsService $analytics) {}
 
     #[OA\Get(
         path: '/api/v1/dashboard/summary',

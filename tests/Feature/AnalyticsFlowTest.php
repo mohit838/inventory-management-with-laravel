@@ -82,7 +82,7 @@ class AnalyticsFlowTest extends TestCase
         $response = $this->getJson('/api/v1/dashboard/chart?period=monthly', $headers);
 
         $response->assertStatus(200);
-        $response->assertJsonStructure(['data' => ['labels', 'values']]);
+        $response->assertJsonStructure(['data' => ['labels', 'data']]);
 
         $labels = $response->json('data.labels');
         $this->assertCount(12, $labels); // Jan - Dec

@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\Interfaces\CacheServiceInterface;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 
-class RedisCacheService implements CacheServiceInterface
+class RedisCacheService
 {
     /**
      * {@inheritDoc}

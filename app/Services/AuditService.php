@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,7 @@ class AuditService
             Cache::forget('audit_logs_page_1');
 
             return $log;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Fallback: If audit logging fails, just log to file so we don't break the app flow
             Log::error("Failed to write audit log: " . $e->getMessage());
             // Return empty model to satisfy return type safely
