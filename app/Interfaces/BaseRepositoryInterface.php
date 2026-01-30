@@ -20,9 +20,9 @@ interface BaseRepositoryInterface
 
     public function restore(int $id);
 
-    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = []);
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = [], array $filters = []);
 
-    public function search(string $term, array $searchableFields, int $perPage = 15, array $relations = []);
+    public function search(string $term, array $searchableFields, int $perPage = 15, array $relations = [], array $filters = []);
 
     public function toggleActive($id);
 }

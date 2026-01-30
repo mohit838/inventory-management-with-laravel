@@ -73,20 +73,53 @@ abstract class EloquentBaseRepository implements BaseRepositoryInterface
         return $model->forceDelete();
     }
 
-    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = [])
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = [], array $filters = [])
     {
-        return $this->model->with($relations)->paginate($perPage, $columns);
+        $query = $this->model->with($relations);
+        $query = $this->applyFilters($query, $filters);
+        return $query->paginate($perPage, $columns);
     }
 
-    public function search(string $term, array $searchableFields, int $perPage = 15, array $relations = [])
+    public function search(string $term, array $searchableFields, int $perPage = 15, array $relations = [], array $filters = [])
     {
-        return $this->model->with($relations)
-            ->where(function ($query) use ($term, $searchableFields) {
-                foreach ($searchableFields as $field) {
-                    $query->orWhere($field, 'like', '%'.$term.'%');
+        $query = $this->model->with($relations);
+        $query = $this->applyFilters($query, $filters);
+
+        return $query->where(function ($query) use ($term, $searchableFields) {
+            foreach ($searchableFields as $field) {
+                $query->orWhere($field, 'like', '%'.$term.'%');
+            }
+        })
+        ->paginate($perPage);
+    }
+
+    protected function applyFilters($query, array $filters)
+    {
+        if (isset($filters['status'])) {
+            if ($filters['status'] === 'active') {
+                // Default scope usually handles this, but let's be explicit if needed
+                if (method_exists($this->model, 'scopeWithInactive')) {
+                    // This is handled by default global scope, but if it was removed, we could re-add.
+                    // For now, doing nothing is equivalent to showing active because of global scope.
                 }
-            })
-            ->paginate($perPage);
+            } elseif ($filters['status'] === 'archived') {
+                if (method_exists($this->model, 'scopeInactive')) {
+                    $query->inactive();
+                } else {
+                    $query->withoutGlobalScope('active')->where($this->model->getTable().'.active', false);
+                }
+            }
+        }
+
+        if (isset($filters['include_archived']) && ($filters['include_archived'] === 'true' || $filters['include_archived'] === true)) {
+            if (method_exists($this->model, 'scopeWithInactive')) {
+                $query->withInactive();
+            } else {
+                $query->withoutGlobalScope('active');
+            }
+        }
+
+        return $query;
     }
 
     public function toggleActive($id)

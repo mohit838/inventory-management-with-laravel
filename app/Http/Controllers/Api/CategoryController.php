@@ -15,11 +15,12 @@ class CategoryController extends Controller
     {
         $perPage = $request->input('per_page', 15);
         $search = $request->input('search');
+        $filters = $request->only(['status', 'include_archived']);
 
         if ($search) {
-            $items = $this->repo->search($search, ['name', 'slug'], $perPage, ['subcategories']);
+            $items = $this->repo->search($search, ['name', 'slug'], $perPage, ['subcategories'], $filters);
         } else {
-            $items = $this->repo->paginate($perPage, ['*'], ['subcategories']);
+            $items = $this->repo->paginate($perPage, ['*'], ['subcategories'], $filters);
         }
 
         return CategoryResource::collection($items);

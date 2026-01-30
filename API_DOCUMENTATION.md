@@ -102,7 +102,12 @@ Most endpoints require a JWT token in the `Authorization` header:
 
 `GET /categories`
 
-- **Query Params:** `page`, `per_page`, `search` (optional)
+- **Query Params:**
+  - `page` (optional): Page number.
+  - `per_page` (optional): Items per page (default: 15).
+  - `search` (optional): Search term.
+  - `status` (optional): `active` (default) or `archived`.
+  - `include_archived` (optional): `true` to include both.
 - **Response:**
   ```json
   {
@@ -184,7 +189,12 @@ Endpoints are identical in structure to Categories.
 
 `GET /products`
 
-- **Query Params:** `page`, `per_page`, `search`
+- **Query Params:**
+  - `page` (optional): Page number.
+  - `per_page` (optional): Items per page.
+  - `search` (optional): Search term.
+  - `status` (optional): `active` (default) or `archived`.
+  - `include_archived` (optional): `true` to include both.
 - **Response:**
   ```json
   {
@@ -231,7 +241,11 @@ Endpoints are identical in structure to Categories.
 
 `GET /orders`
 
-- **Query Params:** `page`, `per_page`
+- **Query Params:**
+  - `page` (optional): Page number.
+  - `per_page` (optional): Items per page.
+  - `status` (optional): `active` (default) or `archived`.
+  - `include_archived` (optional): `true` to return both.
 - **Response:**
   ```json
   {
@@ -327,6 +341,12 @@ Endpoints are identical in structure to Categories.
   }
   ```
 
+### Toggle Active Status (Archive/Unarchive)
+
+`POST /orders/{id}/toggle-active`
+
+- **Response:** (Returns the updated order resource)
+
 ---
 
 ## 6. Dashboard & Analytics
@@ -336,19 +356,23 @@ Endpoints are identical in structure to Categories.
 `GET /dashboard/summary`
 
 - **Response:**
+  ```json
   {
-    "status": "success",
     "data": {
-      "total_products": 4821,
+      "total_products": 150,
       "total_categories": 12,
-      "low_stock_count": 5,
-      "total_value": 92450,
+      "total_value": 45000.5,
+      "total_orders": 89,
+      "pending_orders": 5,
+      "low_stock_alerts": 3,
+      "out_of_stock_count": 2,
       "top_categories": [
-        { "name": "Electronics", "total_sold": 1200 },
-        { "name": "Clothing", "total_sold": 950 }
+        { "name": "Electronics", "value": 45, "percentage": 30.5 },
+        { "name": "Clothing", "value": 25, "percentage": 15.2 }
       ]
     }
   }
+  ```
 
 ### Sales Chart
 
@@ -356,13 +380,16 @@ Endpoints are identical in structure to Categories.
 
 - **Query Param:** `period=monthly`
 - **Response:**
+  ```json
   {
-    "status": "success",
     "data": {
-      "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-      "data": [1200, 1500, 1100, 1800, 2000, 1700]
+      "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      "revenue": [1200.5, 1500, 1100, 1800, 2000, 1700, 0, 0, 0, 0, 0, 0],
+      "stock_variance": [-45, -50, -30, -60, -70, -55, 0, 0, 0, 0, 0, 0],
+      "orders": [12, 15, 10, 18, 20, 17, 0, 0, 0, 0, 0, 0]
     }
   }
+  ```
 
 ---
 

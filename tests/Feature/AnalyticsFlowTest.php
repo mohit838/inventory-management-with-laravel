@@ -65,11 +65,12 @@ class AnalyticsFlowTest extends TestCase
         $data = $response->json('data');
 
         $this->assertEquals(8, $data['total_products']);
-        $this->assertEquals(2, $data['low_stock_count']);
-        $this->assertEquals(1, $data['out_of_stock_count']);
+        $this->assertEquals(1, $data['total_categories']);
         $this->assertEquals(2, $data['total_orders']);
-        $this->assertEquals(100.0, $data['total_revenue']); // Pending/Unpaid excluded from Revenue usually?
-        $this->assertEquals(1, $data['pending_orders_count']);
+        $this->assertEquals(100.0, $data['total_revenue']);
+        $this->assertEquals(1, $data['pending_orders']);
+        $this->assertEquals(2, $data['low_stock_alerts']);
+        $this->assertEquals(1, $data['out_of_stock_count']);
     }
 
     public function test_sales_chart_structure()
@@ -82,7 +83,7 @@ class AnalyticsFlowTest extends TestCase
         $response = $this->getJson('/api/v1/dashboard/chart?period=monthly', $headers);
 
         $response->assertStatus(200);
-        $response->assertJsonStructure(['data' => ['labels', 'data']]);
+        $response->assertJsonStructure(['data' => ['labels', 'revenue', 'stock_variance']]);
 
         $labels = $response->json('data.labels');
         $this->assertCount(12, $labels); // Jan - Dec

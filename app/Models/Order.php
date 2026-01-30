@@ -5,15 +5,17 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Traits\ActiveScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use HasFactory;
+    use ActiveScope, HasFactory, SoftDeletes;
     protected $fillable = [
         'user_id', 'customer_name', 'customer_email',
-        'total_amount', 'payment_method', 'payment_status', 'status',
+        'total_amount', 'payment_method', 'payment_status', 'status', 'active',
     ];
 
     protected $casts = [

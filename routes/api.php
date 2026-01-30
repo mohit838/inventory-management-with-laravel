@@ -62,6 +62,7 @@ Route::prefix('v1')->group(function () {
         Route::post('orders', [OrderController::class, 'store'])->middleware('permission:orders.create');
         Route::get('orders/{id}', [OrderController::class, 'show'])->middleware('permission:orders.view');
         Route::get('orders/{id}/invoice', [OrderController::class, 'invoice'])->middleware('permission:orders.view');
+        Route::post('orders/{id}/toggle-active', [OrderController::class, 'toggleActive'])->middleware('permission:orders.edit');
 
         // Dashboard
         Route::get('dashboard/summary', [DashboardController::class, 'summary'])->middleware('permission:dashboard.view');

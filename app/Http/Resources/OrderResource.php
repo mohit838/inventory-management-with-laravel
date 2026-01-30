@@ -21,6 +21,7 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'payment_method' => $this->payment_method,
             'payment_status' => $this->payment_status,
+            'active' => (bool) $this->active,
             'items' => $this->whenLoaded('items', function () {
                 return $this->items->map(function ($item) {
                     return [

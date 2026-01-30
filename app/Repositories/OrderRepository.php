@@ -25,4 +25,17 @@ class OrderRepository extends EloquentBaseRepository implements BaseRepositoryIn
 
         return $order->load('items');
     }
+
+    protected function applyFilters($query, array $filters)
+    {
+        if (isset($filters['status'])) {
+            if ($filters['status'] === 'active') {
+                $query->whereIn('status', [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING]);
+            } elseif ($filters['status'] === 'archived') {
+                $query->whereIn('status', [\App\Enums\OrderStatus::COMPLETED, \App\Enums\OrderStatus::CANCELLED]);
+            }
+        }
+
+        return $query;
+    }
 }

@@ -23,11 +23,12 @@ class ProductController extends Controller
     {
         $perPage = $request->input('per_page', 15);
         $search = $request->input('search');
+        $filters = $request->only(['status', 'include_archived']);
 
         if ($search) {
-            $items = $this->repo->search($search, ['name', 'sku', 'description'], $perPage, ['category', 'subcategory']);
+            $items = $this->repo->search($search, ['name', 'sku', 'description'], $perPage, ['category', 'subcategory'], $filters);
         } else {
-            $items = $this->repo->paginate($perPage, ['*'], ['category', 'subcategory']);
+            $items = $this->repo->paginate($perPage, ['*'], ['category', 'subcategory'], $filters);
         }
 
         return ProductResource::collection($items);

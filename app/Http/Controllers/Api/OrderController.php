@@ -82,7 +82,8 @@ class OrderController extends Controller
     )]
     public function index()
     {
-        $orders = $this->service->getAllOrders(request('per_page', 15));
+        $filters = request()->only(['status', 'include_archived']);
+        $orders = $this->service->getAllOrders(request('per_page', 15), $filters);
         return OrderResource::collection($orders);
     }
 
@@ -129,5 +130,11 @@ class OrderController extends Controller
             Log::error("Invoice generation failed: " . $e->getMessage());
             return response()->json(['message' => 'Invoice generation failed'], 500);
         }
+    }
+
+    public function toggleActive(int $id)
+    {
+        $order = $this->service->toggleOrderActive($id);
+        return new OrderResource($order);
     }
 }
