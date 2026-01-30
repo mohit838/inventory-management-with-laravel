@@ -25,6 +25,11 @@ class Order extends Model
         'total_amount' => 'decimal:2',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function items()
     {
         return $this->hasMany(OrderItem::class);

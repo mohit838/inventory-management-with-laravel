@@ -26,6 +26,11 @@ class OrderRepository extends EloquentBaseRepository implements BaseRepositoryIn
         return $order->load('items');
     }
 
+    public function findWithItems($id)
+    {
+        return $this->model->with(['items.product'])->findOrFail($id);
+    }
+
     protected function applyFilters($query, array $filters)
     {
         if (isset($filters['status'])) {

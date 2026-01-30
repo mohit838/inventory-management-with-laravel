@@ -1,0 +1,63 @@
+<x-guest-layout>
+    <x-slot name="title">Register</x-slot>
+    <x-slot name="heading">Create your account</x-slot>
+
+    <form class="space-y-6" method="POST" action="{{ route('register') }}">
+        @csrf
+
+        <div>
+            <label for="name" class="block text-sm font-semibold leading-6 text-gray-900">Full name</label>
+            <div class="mt-2">
+                <input id="name" name="name" type="text" autocomplete="name" required 
+                       value="{{ old('name') }}"
+                       class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-all @error('name') ring-red-500 @enderror">
+            </div>
+            @error('name')
+                <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="email" class="block text-sm font-semibold leading-6 text-gray-900">Email address</label>
+            <div class="mt-2">
+                <input id="email" name="email" type="email" autocomplete="email" required 
+                       value="{{ old('email') }}"
+                       class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-all @error('email') ring-red-500 @enderror">
+            </div>
+            @error('email')
+                <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="password" class="block text-sm font-semibold leading-6 text-gray-900">Password</label>
+            <div class="mt-2">
+                <input id="password" name="password" type="password" autocomplete="new-password" required 
+                       class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-all @error('password') ring-red-500 @enderror">
+            </div>
+            @error('password')
+                <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="password_confirmation" class="block text-sm font-semibold leading-6 text-gray-900">Confirm password</label>
+            <div class="mt-2">
+                <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required 
+                       class="block w-full rounded-lg border-0 px-4 py-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 transition-all">
+            </div>
+        </div>
+
+        <div>
+            <button type="submit" 
+                    class="flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-bold leading-6 text-white shadow-lg hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all hover:shadow-xl hover:-translate-y-0.5">
+                Create account
+            </button>
+        </div>
+    </form>
+
+    <p class="mt-10 text-center text-sm text-gray-600">
+        Already have an account?
+        <a href="{{ route('login') }}" class="font-semibold leading-6 text-indigo-600 hover:text-indigo-500 transition-colors">Sign in</a>
+    </p>
+</x-guest-layout>
