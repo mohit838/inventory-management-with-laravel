@@ -7,7 +7,7 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
-use Illuminate\Support\Facades\Hash;
+use App\Constants\AppConstant;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -19,16 +19,16 @@ class RolesAndPermissionsSeeder extends Seeder
         // 1. Reset
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. Define Module Config (Matching Dynamic Menu Expectations)
+        // 2. Define Module Config (Matching AppConstant Expectations)
         $modules = [
-            'dashboard'   => ['view'],
-            'users'       => ['view', 'create', 'edit', 'delete'],
-            'invitations' => ['view', 'create'],
-            'settings'    => ['view', 'manage'],
-            'permissions' => ['manage'],
-            'diagnostics' => ['view'],
+            'dashboard'      => ['view'],
+            'users'          => ['view', 'create', 'edit', 'delete'],
+            'invitations'    => ['view', 'create'],
+            'settings'       => ['view', 'manage'],
+            'permissions'    => ['manage'],
+            'diagnostics'    => ['view'],
             'infrastructure' => ['view'],
-            'inventory'   => ['view', 'create', 'edit', 'delete'],
+            'inventory'      => ['view', 'create', 'edit', 'delete'],
         ];
 
         // 3. Create Permissions
@@ -40,21 +40,22 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // 4. Role Mapping
         $roles = [
-            'superadmin' => Permission::all()->pluck('name')->toArray(),
+            AppConstant::ROLE_SUPERADMIN => Permission::all()->pluck('name')->toArray(),
             
-            'admin'      => [
-                'view_dashboard', 'view_users', 'view_invitations', 'create_invitations',
-                'view_inventory', 'create_inventory', 'edit_inventory', 'view_settings',
+            AppConstant::ROLE_ADMIN      => [
+                AppConstant::PERM_VIEW_DASHBOARD, AppConstant::PERM_VIEW_USERS, 
+                'view_invitations', AppConstant::PERM_CREATE_INVITATIONS,
+                'view_inventory', 'create_inventory', 'edit_inventory', AppConstant::PERM_VIEW_SETTINGS,
             ],
 
-            'owner'      => [
-                'view_dashboard', 'view_users', 'create_users', 'edit_users', 'delete_users',
-                'view_invitations', 'create_invitations', 'view_inventory', 'create_inventory',
-                'edit_inventory', 'delete_inventory', 'view_settings', 'manage_settings',
+            AppConstant::ROLE_OWNER      => [
+                AppConstant::PERM_VIEW_DASHBOARD, AppConstant::PERM_VIEW_USERS, 'create_users', 'edit_users', AppConstant::PERM_DELETE_USERS,
+                'view_invitations', AppConstant::PERM_CREATE_INVITATIONS, 'view_inventory', 'create_inventory',
+                'edit_inventory', 'delete_inventory', AppConstant::PERM_VIEW_SETTINGS, 'manage_settings',
             ],
 
-            'employee'   => [
-                'view_dashboard', 'view_inventory', 'create_inventory', 'edit_inventory',
+            AppConstant::ROLE_EMPLOYEE   => [
+                AppConstant::PERM_VIEW_DASHBOARD, 'view_inventory', 'create_inventory', 'edit_inventory',
             ],
         ];
 

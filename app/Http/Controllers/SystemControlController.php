@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Redis;
+use App\Constants\AppConstant;
 
 class SystemControlController extends Controller
 {
@@ -14,25 +16,27 @@ class SystemControlController extends Controller
      */
     public function index()
     {
-        Gate::authorize('view_diagnostics');
+        Gate::authorize(AppConstant::PERM_VIEW_DIAGNOSTICS);
 
-        // 1. Hardware Stats (Simulated for non-linux or via sys calls)
+        // 1. Hardware Stats
         $cpuLoad = sys_getloadavg();
         $memInfo = $this->getSystemMemInfo();
+        $dbSize  = $this->getDatabaseSize();
 
-        // 2. Database Stats
-        $dbSize = $this->getDatabaseSize();
+        // 2. Slow Request Profiling (Real data from Redis)
+        try {
+            $rawLogs = Redis::lrange(AppConstant::PERFORMANCE_LOG_KEY, 0, 9);
+            $slowEndpoints = array_map(function($log) {
+                $data = json_decode($log, true);
+                $data['date'] = \Carbon\Carbon::parse($data['date'])->diffForHumans();
+                return $data;
+            }, $rawLogs);
+        } catch (\Exception $e) {
+            $slowEndpoints = []; // Redis not available
+        }
 
-        // 3. Last 5 Error Logs
+        // 3. Error Logs
         $errorLogs = $this->getRecentLogs(5);
-
-        // 4. Slow Request Profiling (Captured from a separate storage or log)
-        // For MVP, we'll parse logs for "request_duration" if we had them or use dummy data
-        $slowEndpoints = [
-            ['method' => 'GET', 'uri' => '/users', 'duration' => '1.2s', 'date' => now()->subMinutes(5)->diffForHumans()],
-            ['method' => 'POST', 'uri' => '/settings/permissions', 'duration' => '0.8s', 'date' => now()->subMinutes(12)->diffForHumans()],
-            ['method' => 'GET', 'uri' => '/infrastructure', 'duration' => '2.1s', 'date' => now()->subMinutes(45)->diffForHumans()],
-        ];
 
         return view('superadmin.system_health', compact('cpuLoad', 'memInfo', 'dbSize', 'errorLogs', 'slowEndpoints'));
     }

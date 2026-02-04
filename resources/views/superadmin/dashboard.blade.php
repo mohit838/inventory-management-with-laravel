@@ -82,33 +82,26 @@
             <table class="w-full text-left">
                 <thead>
                     <tr class="bg-slate-50/50">
-                        <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Organization</th>
-                        <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Hierarchy</th>
-                        <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estimated Rev.</th>
-                        <th class="px-10 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Health</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Organization</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Total Members</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Owners</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Employees</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @foreach($tenants as $tenant)
-                    <tr class="hover:bg-slate-50/30 transition-colors group">
-                        <td class="px-10 py-6">
-                            <p class="text-sm font-black text-slate-800 group-hover:text-brand-600 transition-colors">{{ $tenant['name'] }}</p>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{{ $tenant['total_members'] }} Total Members</p>
+                    <tr class="hover:bg-slate-50/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <p class="text-sm font-bold text-slate-700 tracking-tight">{{ $tenant['name'] }}</p>
                         </td>
-                        <td class="px-10 py-6">
-                            <div class="flex items-center justify-center space-x-1">
-                                <span class="px-2 py-0.5 bg-slate-900 text-white text-[9px] font-black rounded-md">{{ $tenant['owners'] }} O</span>
-                                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-black rounded-md">{{ $tenant['employees'] }} E</span>
-                            </div>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-xs font-black text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">{{ $tenant['total_members'] }}</span>
                         </td>
-                        <td class="px-10 py-6 text-center">
-                            <span class="text-sm font-black text-slate-700">${{ $tenant['mock_revenue'] }}</span>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-xs font-bold text-brand-600 bg-brand-50 px-2.5 py-1 rounded-lg border border-brand-100">{{ $tenant['owners'] }}</span>
                         </td>
-                        <td class="px-10 py-6 text-right">
-                            <span class="inline-flex items-center text-[10px] font-black uppercase text-emerald-600 px-3 py-1 bg-emerald-50 rounded-full">
-                                <span class="w-1 h-1 rounded-full bg-emerald-600 mr-2 animate-pulse"></span>
-                                {{ $tenant['status'] }}
-                            </span>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">{{ $tenant['employees'] }}</span>
                         </td>
                     </tr>
                     @endforeach

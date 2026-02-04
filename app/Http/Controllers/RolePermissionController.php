@@ -6,25 +6,28 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\Gate;
+use App\Constants\AppConstant;
 
 class RolePermissionController extends Controller
 {
-    /**
-     * Display a matrix of roles and permissions.
-     */
     public function index()
     {
-        Gate::authorize('manage_permissions');
+        Gate::authorize(AppConstant::PERM_MANAGE_PERMISSIONS);
 
-        // Priority Hierarchy
-        $priorityOrder = ['superadmin' => 1, 'admin' => 2, 'owner' => 3, 'employee' => 4];
+        // Priority Hierarchy using Constants
+        $priorityOrder = [
+            AppConstant::ROLE_SUPERADMIN => 1, 
+            AppConstant::ROLE_ADMIN => 2, 
+            AppConstant::ROLE_OWNER => 3, 
+            AppConstant::ROLE_EMPLOYEE => 4
+        ];
 
         $roles = Role::all()->sortBy(function($role) use ($priorityOrder) {
             return $priorityOrder[$role->name] ?? 99;
         })->values();
 
-        // We still skip superadmin for dynamic editing in the matrix as they should always have all
-        $editableRoles = $roles->filter(fn($r) => $r->name !== 'superadmin');
+        // We still skip superadmin for dynamic editing
+        $editableRoles = $roles->filter(fn($r) => $r->name !== AppConstant::ROLE_SUPERADMIN);
 
         $permissions = Permission::all();
 
@@ -40,18 +43,13 @@ class RolePermissionController extends Controller
         ]);
     }
 
-    /**
-     * Update the permissions for specific roles.
-     */
     public function update(Request $request)
     {
-        Gate::authorize('manage_permissions');
+        Gate::authorize(AppConstant::PERM_MANAGE_PERMISSIONS);
 
-        $request->validate([
-            'permissions' => 'array',
-        ]);
+        $request->validate(['permissions' => 'array']);
 
-        $roles = Role::where('name', '!=', 'superadmin')->get();
+        $roles = Role::where('name', '!=', AppConstant::ROLE_SUPERADMIN)->get();
 
         foreach ($roles as $role) {
             $rolePermissions = $request->permissions[$role->id] ?? [];
