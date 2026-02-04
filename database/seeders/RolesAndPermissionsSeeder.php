@@ -55,7 +55,8 @@ class RolesAndPermissionsSeeder extends Seeder
             ],
 
             AppConstant::ROLE_EMPLOYEE   => [
-                AppConstant::PERM_VIEW_DASHBOARD, 'view_inventory', 'create_inventory', 'edit_inventory',
+                AppConstant::PERM_VIEW_DASHBOARD, AppConstant::PERM_VIEW_SETTINGS, 
+                'view_inventory', 'create_inventory', 'edit_inventory',
             ],
         ];
 

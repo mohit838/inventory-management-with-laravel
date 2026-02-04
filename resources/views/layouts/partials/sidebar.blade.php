@@ -73,6 +73,11 @@
             </a>
             @endcan
 
+            <a href="{{ route('password.change') }}" class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('password.change') ? 'sidebar-item-active text-white' : 'hover:bg-slate-800/40 hover:text-slate-200' }}">
+                <svg class="w-5 h-5 mr-3.5 {{ request()->routeIs('password.change') ? 'text-brand-400' : 'text-slate-500 group-hover:text-slate-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Profile Settings
+            </a>
+
             @can('manage_permissions')
             <a href="{{ route('settings.permissions') }}" class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('settings.permissions') ? 'sidebar-item-active text-white' : 'hover:bg-slate-800/40 hover:text-slate-200' }}">
                 <svg class="w-5 h-5 mr-3.5 {{ request()->routeIs('settings.permissions') ? 'text-brand-400' : 'text-slate-500 group-hover:text-slate-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
