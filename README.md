@@ -1,59 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Enterprise Inventory Management System (EIMS)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A premium, multi-tenant inventory management system built with Laravel 12, featuring a robust security matrix, enterprise observability, and a state-of-the-art UI/UX.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🌟 The "Why": Strategic Scenario
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Imagine a global logistics provider that needs to provide unique inventory dashboards to hundreds of different partner organizations (Tenants). They required a system where:
+1. **Isolated Data**: Organization A can never see Organization B's stock.
+2. **Flexible Security**: An "Admin" in one organization might need different permissions than an "Admin" in another.
+3. **Infrastructure Oversight**: The parent company (Superadmin) needs to see everything—system health, slow API calls, and global user distribution—without interfering with daily operations.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+** EIMS was built to solve this exact scenario.** It transitions from a simple CRUD app to a high-scale, observable, and multi-tenant infrastructure platform.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🚀 Key Features (For Everyone)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Multi-Tenant Isolation**: Built-in logic ensuring every organization’s data is strictly partitioned and secure.
+- **Dynamic Security Matrix**: A visual dashboard to assign permissions (Create, Delete, View) to different roles instantly.
+- **2FA (Two-Factor Authentication)**: Banking-grade security with Google Authenticator support to protect sensitive inventory data.
+- **Invitation-Only Growth**: Secure the platform by allowing new users to join only via tracked email invitations.
+- **Premium Dark UI**: A high-fidelity, responsive sidebar and dashboard designed for professional long-term use.
+- **System Health Monitor**: Real-time stats on CPU, Memory, and Database health for the platform owners.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🛠 Technical Architecture (For Developers)
 
-### Premium Partners
+### 1. Robust Permissions (RBAC)
+We utilize **Spatie Laravel-Permission** combined with a custom **Security Matrix UI**. 
+- **Superadmin Bypass**: Implemented via `Gate::before` in `AppServiceProvider` to ensure core infrastructure maintains access even during permission re-organizations.
+- **Granular Guards**: Every route and UI component is guarded by specific capabilities (e.g., `view_diagnostics`, `manage_settings`).
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 2. Multi-Tenancy
+- **Scoped Eloquent Models**: Every model is linked to a `tenant_id`. Global scopes ensure that data is auto-filtered based on the authenticated user's organization.
 
-## Contributing
+### 3. Observability & Performance
+- **Performance Middleware**: An active interceptor that calculates request duration.
+- **Redis Integration**: "Performance Culprits" (slow requests > 500ms) are pushed to a Redis list for high-speed, non-blocking telemetry.
+- **Fault Manifest**: A secure log-parsing engine that surfaces the last 5 critical backend errors directly in the browser for Superadmins.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Code Standards
+- **Centralized Literals**: `AppConstant.php` stores all roles, permissions, and system thresholds, preventing "magic strings" and making the code highly maintainable.
+- **Dockerized Environment**: Optimized `Dockerfile` (PHP 8.2-FPM + Nginx) and `docker-compose.yml` for instant, consistent deployment with Redis and MySQL.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🏗 Setup & Installation
 
-## Security Vulnerabilities
+### Option 1: Docker (Recommended)
+```bash
+# Start the entire infrastructure (App, MySQL, Redis)
+docker-compose up -d
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Install dependencies and setup database
+docker exec -it inv-app composer install
+docker exec -it inv-app php artisan migrate --seed
+```
 
-## License
+### Option 2: Local Development
+1. **Configure Environment**: Copy `.env.example` to `.env` and set your DB/Redis credentials.
+2. **Install**: `composer install` & `npm install`.
+3. **Database**: `php artisan migrate --seed`.
+4. **Link Storage**: `php artisan storage:link`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 📊 Standard Roles & Permissions
+- **Superadmin**: Global infrastructure owner. Can see System Health and manage all tenants.
+- **Owner**: The head of a Tenant organization. Can manage their organization's users and settings.
+- **Admin**: Operational lead within a tenant. Handles inventory and invitations.
+- **Employee**: Base staff. Can view inventory and manage their own profile settings.
+
+---
+
+## 💻 Tech Stack
+- **Framework**: Laravel 12.x
+- **Frontend**: Blade, Alpine.js, HTMX (for dynamic updates)
+- **Styling**: Vanilla CSS (Premium Tailored Designs)
+- **Database**: MySQL 8.0
+- **Cache/Telemetry**: Redis
+- **Security**: Google 2FA, Spatie RBAC
+
+---
+*Built with precision for high-performance enterprise needs.*
