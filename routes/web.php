@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SettingsController;
@@ -12,8 +13,8 @@ use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [\App\Http\Controllers\LandingPageController::class, 'index'])->name('landing');
-Route::post('/request-access', [\App\Http\Controllers\LandingPageController::class, 'submitRequest'])->middleware('throttle:3,1');
+Route::get('/', [LandingPageController::class, 'index'])->name('landing');
+Route::post('/request-access', [LandingPageController::class, 'submitRequest'])->middleware('throttle:3,1');
 
 // Authentication (Guest Only)
 Route::middleware('guest')->group(function () {
@@ -34,7 +35,7 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/infrastructure', [SuperAdminDashboardController::class, 'index'])->name('superadmin.dashboard')->middleware('role:superadmin');
     Route::get('/system/health', [SystemControlController::class, 'index'])->name('system.health')->middleware('permission:view_diagnostics');
-    
+
     // Onboarding Requests
     Route::middleware('permission:manage_requests')->group(function () {
         Route::get('/requests', [SuperAdminDashboardController::class, 'requestsList'])->name('superadmin.requests');
