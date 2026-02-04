@@ -89,6 +89,19 @@ Instead of `new StripeGateway()`, type-hint `PaymentGateway $gateway`. The conta
 - **Service Class**: Handles business operations (Order processing, API integration). Can have dependencies.
 - **Utils Class**: Only for **pure, stateless, deterministic** formatting (e.g., `Money::format()`). Should have no side effects.
 
+#### Example: Redis Utility (Plugin-style)
+
+`app/Utils/RedisUtil.php`
+```php
+use App\Utils\RedisUtil;
+
+// Set a value for 10 minutes (identifies as a plugin/global helper)
+RedisUtil::set('user:stats:1', ['orders' => 5], 600);
+
+// Get it back anywhere in the project
+$stats = RedisUtil::get('user:stats:1');
+```
+
 ---
 
 ## 5. High-Impact Concepts You Shouldn't Miss
