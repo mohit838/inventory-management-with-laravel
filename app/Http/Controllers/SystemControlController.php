@@ -8,16 +8,17 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Redis;
 use App\Constants\AppConstant;
+use App\Services\DiagnosticService;
 
 class SystemControlController extends Controller
 {
-    public function __construct(protected \App\Services\DiagnosticService $diagnosticService)
+    public function __construct(protected DiagnosticService $diagnosticService)
     {
     }
 
     public function index()
     {
-        \Illuminate\Support\Facades\Gate::authorize(\App\Constants\AppConstant::PERM_VIEW_DIAGNOSTICS);
+        Gate::authorize(AppConstant::PERM_VIEW_DIAGNOSTICS);
 
         $hardwareStats = $this->diagnosticService->getHardwareStats();
         $cpuLoad       = $hardwareStats['cpu_load'];

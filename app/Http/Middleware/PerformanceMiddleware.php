@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Log;
 use App\Constants\AppConstant;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -45,7 +46,7 @@ class PerformanceMiddleware
             Redis::ltrim(AppConstant::PERFORMANCE_LOG_KEY, 0, 9);
         } catch (\Exception $e) {
             // Fallback to simple file logging or skip if Redis is not yet available
-            \Illuminate\Support\Facades\Log::warning("Slow Request: " . $log['uri'] . " took " . $log['duration']);
+            Log::warning("Slow Request: " . $log['uri'] . " took " . $log['duration']);
         }
     }
 }

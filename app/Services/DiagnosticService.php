@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Redis;
 use App\Constants\AppConstant;
+use Carbon\Carbon;
 
 class DiagnosticService
 {
@@ -18,7 +19,7 @@ class DiagnosticService
             $rawLogs = Redis::lrange(AppConstant::PERFORMANCE_LOG_KEY, 0, 9);
             return array_map(function($log) {
                 $data = json_decode($log, true);
-                $data['date'] = \Carbon\Carbon::parse($data['date'])->diffForHumans();
+                $data['date'] = Carbon::parse($data['date'])->diffForHumans();
                 return $data;
             }, $rawLogs);
         } catch (\Exception $e) {

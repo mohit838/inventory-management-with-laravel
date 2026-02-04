@@ -7,6 +7,7 @@ use App\Services\InvitationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class InvitationController extends Controller
 {
@@ -26,7 +27,7 @@ class InvitationController extends Controller
             'role' => 'required|in:admin,owner,employee',
         ]);
 
-        \Illuminate\Support\Facades\Gate::authorize('invite_users');
+        Gate::authorize('invite_users');
 
         $tenantId = Auth::user()->tenant_id;
         
