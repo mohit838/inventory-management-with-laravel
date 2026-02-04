@@ -19,6 +19,7 @@ class AppConstant
     public const PERM_DELETE_USERS        = 'delete_users';
     public const PERM_CREATE_INVITATIONS  = 'create_invitations';
     public const PERM_VIEW_SETTINGS       = 'view_settings';
+    public const PERM_MANAGE_REQUESTS    = 'manage_requests';
 
     // Pagination
     public const DEFAULT_PAGINATION = 10;

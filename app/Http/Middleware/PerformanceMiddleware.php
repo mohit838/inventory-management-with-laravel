@@ -22,8 +22,10 @@ class PerformanceMiddleware
 
         $duration = (microtime(true) - $start) * 1000; // ms
 
-        // Log if it exceeds threshold (and it's a GET/POST UI request, not diagnostic itself)
-        if ($duration > AppConstant::SLOW_THRESHOLD_MS && !$request->routeIs('system.health')) {
+        // Log if it exceeds threshold (and it's a GET/POST UI request, not diagnostic itself or landing)
+        if ($duration > AppConstant::SLOW_THRESHOLD_MS && 
+            !$request->routeIs('system.health') && 
+            !$request->routeIs('landing')) {
             $this->logSlowRequest($request, $duration);
         }
 

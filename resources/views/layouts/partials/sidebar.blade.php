@@ -4,9 +4,7 @@
     
     <!-- Logo Section -->
     <div class="h-20 flex items-center px-8 mb-6 flex-shrink-0">
-        <div class="w-9 h-9 bg-brand-500 rounded-lg flex items-center justify-center mr-3.5 shadow-lg shadow-brand-500/20 rotate-3 group-hover:rotate-0 transition-transform duration-300">
-            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-        </div>
+        <img src="{{ asset('favicon-logo.png') }}" class="w-10 h-10 mr-3.5 shadow-lg shadow-brand-500/20 rotate-3 transition-transform duration-300" alt="EIMS Logo">
         <div>
             <h1 class="text-white font-black text-2xl tracking-tighter uppercase">INV</h1>
             <div class="flex items-center">
@@ -32,6 +30,13 @@
             <a href="{{ route('superadmin.dashboard') }}" class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active text-white' : 'hover:bg-slate-800/40 hover:text-slate-200' }}">
                 <svg class="w-5 h-5 mr-3.5 {{ request()->routeIs('superadmin.dashboard') ? 'text-brand-400' : 'text-slate-500 group-hover:text-slate-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                 Infrastructure
+            </a>
+            @endcan
+
+            @can('manage_requests')
+            <a href="{{ route('superadmin.requests') }}" class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('superadmin.requests') ? 'sidebar-item-active text-white' : 'hover:bg-slate-800/40 hover:text-slate-200' }}">
+                <svg class="w-5 h-5 mr-3.5 {{ request()->routeIs('superadmin.requests') ? 'text-brand-400' : 'text-slate-500 group-hover:text-slate-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                Onboarding Portal
             </a>
             @endcan
 
@@ -72,11 +77,6 @@
                 Core Settings
             </a>
             @endcan
-
-            <a href="{{ route('password.change') }}" class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('password.change') ? 'sidebar-item-active text-white' : 'hover:bg-slate-800/40 hover:text-slate-200' }}">
-                <svg class="w-5 h-5 mr-3.5 {{ request()->routeIs('password.change') ? 'text-brand-400' : 'text-slate-500 group-hover:text-slate-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Profile Settings
-            </a>
 
             @can('manage_permissions')
             <a href="{{ route('settings.permissions') }}" class="flex items-center px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group {{ request()->routeIs('settings.permissions') ? 'sidebar-item-active text-white' : 'hover:bg-slate-800/40 hover:text-slate-200' }}">

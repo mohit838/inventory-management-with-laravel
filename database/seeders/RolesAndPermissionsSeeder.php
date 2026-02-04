@@ -30,6 +30,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'diagnostics'    => ['view'],
             'infrastructure' => ['view'],
             'inventory'      => ['view', 'create', 'edit', 'delete'],
+            'requests'       => ['manage'],
         ];
 
         // 3. Create Permissions

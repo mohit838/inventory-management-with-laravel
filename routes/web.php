@@ -12,26 +12,35 @@ use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect('/login');
+Route::get('/', [\App\Http\Controllers\LandingPageController::class, 'index'])->name('landing');
+Route::post('/request-access', [\App\Http\Controllers\LandingPageController::class, 'submitRequest'])->middleware('throttle:3,1');
+
+// Authentication (Guest Only)
+Route::middleware('guest')->group(function () {
+    Route::controller(AuthController::class)->group(function () {
+        Route::get('/login', 'showLoginForm')->name('login');
+        Route::post('/login', 'login');
+
+        // Invitation-based Registration
+        Route::get('/register/{token}', 'showRegistrationForm')->name('register');
+        Route::post('/register', 'register');
+    });
 });
 
-// Authentication
-Route::controller(AuthController::class)->group(function () {
-    Route::get('/login', 'showLoginForm')->name('login');
-    Route::post('/login', 'login');
-    Route::post('/logout', 'logout')->name('logout');
-
-    // Invitation-based Registration
-    Route::get('/register/{token}', 'showRegistrationForm')->name('register');
-    Route::post('/register', 'register');
-});
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Protected UI Routes (Require Auth & 2FA)
 Route::middleware(['auth', '2fa'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/infrastructure', [SuperAdminDashboardController::class, 'index'])->name('superadmin.dashboard')->middleware('role:superadmin');
     Route::get('/system/health', [SystemControlController::class, 'index'])->name('system.health')->middleware('permission:view_diagnostics');
+    
+    // Onboarding Requests
+    Route::middleware('permission:manage_requests')->group(function () {
+        Route::get('/requests', [SuperAdminDashboardController::class, 'requestsList'])->name('superadmin.requests');
+        Route::post('/requests/{request}/approve', [SuperAdminDashboardController::class, 'approveRequest'])->name('superadmin.requests.approve');
+        Route::post('/requests/{request}/reject', [SuperAdminDashboardController::class, 'rejectRequest'])->name('superadmin.requests.reject');
+    });
 
     // Invitations
     Route::get('/invitations/create', [InvitationController::class, 'create'])->name('invitations.create')->middleware('permission:create_invitations');

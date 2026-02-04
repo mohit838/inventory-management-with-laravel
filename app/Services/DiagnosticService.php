@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 use App\Constants\AppConstant;
 use Carbon\Carbon;
 
@@ -32,11 +33,13 @@ class DiagnosticService
      */
     public function getHardwareStats(): array
     {
-        return [
-            'cpu_load' => sys_getloadavg(),
-            'memory'   => $this->getMemoryInfo(),
-            'db_size'  => $this->getDatabaseSize(),
-        ];
+        return Cache::remember('system:hardware_stats', 30, function() {
+            return [
+                'cpu_load' => sys_getloadavg(),
+                'memory'   => $this->getMemoryInfo(),
+                'db_size'  => $this->getDatabaseSize(),
+            ];
+        });
     }
 
     /**
@@ -74,6 +77,7 @@ class DiagnosticService
         
         return [
             'total' => round($total / 1024, 2) . ' GB',
+            'free' => round($free / 1024, 2) . ' GB',
             'used_percent' => round((($total - $free) / $total) * 100, 1)
         ];
     }

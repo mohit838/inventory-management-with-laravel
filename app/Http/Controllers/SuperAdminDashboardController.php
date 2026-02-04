@@ -8,9 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Role;
 use App\Constants\AppConstant;
+use App\Models\TenantRequest;
+use App\Services\InvitationService;
 
 class SuperAdminDashboardController extends Controller
 {
+    public function __construct(protected InvitationService $invitationService)
+    {
+    }
+
     public function index()
     {
         // Global User Health
@@ -36,5 +42,35 @@ class SuperAdminDashboardController extends Controller
         });
 
         return view('superadmin.dashboard', compact('stats', 'roles', 'tenants'));
+    }
+
+    public function requestsList()
+    {
+        Gate::authorize(AppConstant::PERM_MANAGE_REQUESTS);
+        $requests = TenantRequest::latest()->paginate(AppConstant::DEFAULT_PAGINATION);
+        $totalPending = TenantRequest::where('status', 'pending')->count();
+        return view('superadmin.requests', compact('requests', 'totalPending'));
+    }
+
+    public function approveRequest(TenantRequest $request)
+    {
+        Gate::authorize(AppConstant::PERM_MANAGE_REQUESTS);
+        
+        $this->invitationService->sendInvitation(
+            $request->email,
+            AppConstant::ROLE_OWNER,
+            null
+        );
+
+        $request->update(['status' => 'accepted']);
+
+        return back()->with('success', 'Request approved. Invitation sent to ' . $request->email);
+    }
+
+    public function rejectRequest(TenantRequest $request)
+    {
+        Gate::authorize(AppConstant::PERM_MANAGE_REQUESTS);
+        $request->update(['status' => 'rejected']);
+        return back()->with('info', 'Request rejected.');
     }
 }
