@@ -9,14 +9,14 @@ class RedisUtil
     /**
      * Store a value in Redis with an optional expiration (in seconds).
      */
-    public static function set(string $key, mixed $value, int $seconds = null): bool
+    public static function set(string $key, mixed $value, int $seconds): bool
     {
         $serializedValue = is_scalar($value) ? $value : serialize($value);
-        
+
         if ($seconds) {
             return Redis::setex($key, $seconds, $serializedValue);
         }
-        
+
         return Redis::set($key, $serializedValue);
     }
 
