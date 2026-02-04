@@ -11,78 +11,22 @@ use App\Constants\AppConstant;
 
 class SystemControlController extends Controller
 {
-    /**
-     * Display the low-level system diagnostic dashboard.
-     */
+    public function __construct(protected \App\Services\DiagnosticService $diagnosticService)
+    {
+    }
+
     public function index()
     {
-        Gate::authorize(AppConstant::PERM_VIEW_DIAGNOSTICS);
+        \Illuminate\Support\Facades\Gate::authorize(\App\Constants\AppConstant::PERM_VIEW_DIAGNOSTICS);
 
-        // 1. Hardware Stats
-        $cpuLoad = sys_getloadavg();
-        $memInfo = $this->getSystemMemInfo();
-        $dbSize  = $this->getDatabaseSize();
-
-        // 2. Slow Request Profiling (Real data from Redis)
-        try {
-            $rawLogs = Redis::lrange(AppConstant::PERFORMANCE_LOG_KEY, 0, 9);
-            $slowEndpoints = array_map(function($log) {
-                $data = json_decode($log, true);
-                $data['date'] = \Carbon\Carbon::parse($data['date'])->diffForHumans();
-                return $data;
-            }, $rawLogs);
-        } catch (\Exception $e) {
-            $slowEndpoints = []; // Redis not available
-        }
-
-        // 3. Error Logs
-        $errorLogs = $this->getRecentLogs(5);
+        $hardwareStats = $this->diagnosticService->getHardwareStats();
+        $cpuLoad       = $hardwareStats['cpu_load'];
+        $memInfo       = $hardwareStats['memory'];
+        $dbSize        = $hardwareStats['db_size'];
+        
+        $slowEndpoints = $this->diagnosticService->getPerformanceMetrics();
+        $errorLogs     = $this->diagnosticService->getRecentErrors(5);
 
         return view('superadmin.system_health', compact('cpuLoad', 'memInfo', 'dbSize', 'errorLogs', 'slowEndpoints'));
-    }
-
-    private function getSystemMemInfo()
-    {
-        if (!is_readable("/proc/meminfo")) {
-            return ['total' => 'N/A', 'free' => 'N/A', 'used_percent' => 0];
-        }
-
-        $data = explode("\n", file_get_contents("/proc/meminfo"));
-        $memInfo = [];
-        foreach ($data as $line) {
-            if (empty($line)) continue;
-            list($key, $val) = explode(":", $line);
-            $memInfo[$key] = trim($val);
-        }
-
-        $total = (int) filter_var($memInfo['MemTotal'], FILTER_SANITIZE_NUMBER_INT) / 1024; // MB
-        $free = (int) filter_var($memInfo['MemFree'], FILTER_SANITIZE_NUMBER_INT) / 1024; // MB
-        
-        return [
-            'total' => round($total / 1024, 2) . ' GB',
-            'free' => round($free / 1024, 2) . ' GB',
-            'used_percent' => round((($total - $free) / $total) * 100, 1)
-        ];
-    }
-
-    private function getDatabaseSize()
-    {
-        $dbName = config('database.connections.mysql.database');
-        $query = "SELECT SUM(data_length + index_length) / 1024 / 1024 AS size FROM information_schema.TABLES WHERE table_schema = ?";
-        $result = DB::select($query, [$dbName]);
-        return round($result[0]->size ?? 0, 2) . ' MB';
-    }
-
-    private function getRecentLogs($limit = 5)
-    {
-        $logPath = storage_path('logs/laravel.log');
-        if (!File::exists($logPath)) return [];
-
-        $lines = file($logPath);
-        $errors = array_filter($lines, function($line) {
-            return str_contains($line, 'ERROR') || str_contains($line, 'CRITICAL');
-        });
-
-        return array_slice($errors, -$limit);
     }
 }

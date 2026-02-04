@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class InvitationController extends Controller
 {
-    public function __construct(protected InvitationService $invitationService)
+    public function __construct(protected \App\Services\InvitationService $invitationService)
     {
     }
 
@@ -22,16 +22,12 @@ class InvitationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'email' => 'required|email|unique:users,email',
             'role' => 'required|in:admin,owner,employee',
         ]);
 
-        // Authorization check - only those with permission can invite
-        if (!Auth::user()->can('invite_users')) {
-            abort(403, 'Unauthorized action.');
-        }
+        \Illuminate\Support\Facades\Gate::authorize('invite_users');
 
-        // Determine tenant_id
         $tenantId = Auth::user()->tenant_id;
         
         // Superadmins/Admins might invite Owners without a tenant context initially
@@ -39,13 +35,11 @@ class InvitationController extends Controller
             $tenantId = null;
         }
 
-        $invitation = $this->invitationService->generateInvitation(
+        $this->invitationService->sendInvitation(
             $request->email,
             $request->role,
             $tenantId
         );
-
-        Mail::to($request->email)->send(new InvitationMail($invitation));
 
         return back()->with('success', 'Invitation sent successfully to ' . $request->email);
     }
