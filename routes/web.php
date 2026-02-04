@@ -6,6 +6,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SuperAdminDashboardController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,7 @@ Route::controller(AuthController::class)->group(function () {
 // Protected UI Routes (Require Auth & 2FA)
 Route::middleware(['auth', '2fa'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/infrastructure', [SuperAdminDashboardController::class, 'index'])->name('superadmin.dashboard')->middleware('role:superadmin');
     
     // Invitations
     Route::get('/invitations/create', [InvitationController::class, 'create'])->name('invitations.create')->middleware('permission:create_invitations');

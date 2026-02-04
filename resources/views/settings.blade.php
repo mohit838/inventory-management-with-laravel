@@ -54,7 +54,20 @@
                         <p class="text-xs text-slate-500">{{ Auth::user()->two_factor_enabled ? 'Active and protecting your account.' : 'Not enabled yet.' }}</p>
                     </div>
                     @if(Auth::user()->two_factor_enabled)
-                        <form action="{{ route('two-factor.disable') }}" method="POST">
+                        <form x-data="{ 
+                            submitForm(e) {
+                                e.preventDefault();
+                                confirmAction({
+                                    title: 'Disable Protection?',
+                                    text: 'Removing 2FA reduces your account security. Are you sure?',
+                                    confirmButtonText: 'Yes, Disable'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        this.$el.submit();
+                                    }
+                                });
+                            }
+                        }" @submit="submitForm" action="{{ route('two-factor.disable') }}" method="POST">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-rose-50 text-rose-600 text-xs font-bold rounded-lg border border-rose-100 hover:bg-rose-100 transition-all">
                                 Disable

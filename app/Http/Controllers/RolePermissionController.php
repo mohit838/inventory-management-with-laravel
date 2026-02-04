@@ -16,7 +16,16 @@ class RolePermissionController extends Controller
     {
         Gate::authorize('manage_permissions');
 
-        $roles = Role::where('name', '!=', 'superadmin')->get(); 
+        // Priority Hierarchy
+        $priorityOrder = ['superadmin' => 1, 'admin' => 2, 'owner' => 3, 'employee' => 4];
+
+        $roles = Role::all()->sortBy(function($role) use ($priorityOrder) {
+            return $priorityOrder[$role->name] ?? 99;
+        })->values();
+
+        // We still skip superadmin for dynamic editing in the matrix as they should always have all
+        $editableRoles = $roles->filter(fn($r) => $r->name !== 'superadmin');
+
         $permissions = Permission::all();
 
         // Group permissions by module
@@ -25,7 +34,10 @@ class RolePermissionController extends Controller
             return count($parts) > 1 ? str_replace('_', ' ', end($parts)) : 'System';
         });
 
-        return view('settings.permissions', compact('roles', 'groupedPermissions'));
+        return view('settings.permissions', [
+            'roles' => $editableRoles,
+            'groupedPermissions' => $groupedPermissions
+        ]);
     }
 
     /**

@@ -78,7 +78,20 @@
                                     <button type="submit" class="px-3 py-1 bg-brand-50 text-brand-600 hover:bg-brand-600 hover:text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300">Activate</button>
                                 </form>
                             @else
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Deactivate this user?')">
+                                <form x-data="{ 
+                                    submitForm(e) {
+                                        e.preventDefault();
+                                        confirmAction({
+                                            title: 'Deactivate User?',
+                                            text: 'This user will no longer be able to log in, but their data will be preserved.',
+                                            confirmButtonText: 'Deactivate Now'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                this.$el.submit();
+                                            }
+                                        });
+                                    }
+                                }" @submit="submitForm" action="{{ route('users.destroy', $user->id) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-3 py-1 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300">Deactivate</button>

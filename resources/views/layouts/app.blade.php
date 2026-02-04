@@ -40,6 +40,7 @@
         .sidebar-scroll::-webkit-scrollbar { width: 0px; }
     </style>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="h-full text-slate-900 antialiased overflow-hidden" x-data="{ mobileMenuOpen: false, notificationsOpen: false }">
     <div class="h-screen flex overflow-hidden">
