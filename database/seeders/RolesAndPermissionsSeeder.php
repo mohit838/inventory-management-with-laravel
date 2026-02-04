@@ -19,13 +19,15 @@ class RolesAndPermissionsSeeder extends Seeder
         // 1. Reset
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. Define Module Config
+        // 2. Define Module Config (Matching Dynamic Menu Expectations)
         $modules = [
             'dashboard'   => ['view'],
             'users'       => ['view', 'create', 'edit', 'delete'],
             'invitations' => ['view', 'create'],
             'settings'    => ['view', 'manage'],
             'permissions' => ['manage'],
+            'diagnostics' => ['view'],
+            'infrastructure' => ['view'],
             'inventory'   => ['view', 'create', 'edit', 'delete'],
         ];
 

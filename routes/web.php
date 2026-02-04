@@ -3,10 +3,12 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\MenuController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SuperAdminDashboardController;
+use App\Http\Controllers\SystemControlController;
 use App\Http\Controllers\TwoFactorController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +32,7 @@ Route::controller(AuthController::class)->group(function () {
 Route::middleware(['auth', '2fa'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/infrastructure', [SuperAdminDashboardController::class, 'index'])->name('superadmin.dashboard')->middleware('role:superadmin');
+    Route::get('/system/health', [SystemControlController::class, 'index'])->name('system.health')->middleware('permission:view_diagnostics');
     
     // Invitations
     Route::get('/invitations/create', [InvitationController::class, 'create'])->name('invitations.create')->middleware('permission:create_invitations');
@@ -44,7 +47,6 @@ Route::middleware(['auth', '2fa'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings')->middleware('permission:view_settings');
     Route::get('/settings/permissions', [RolePermissionController::class, 'index'])->name('settings.permissions')->middleware('permission:manage_permissions');
     Route::put('/settings/permissions', [RolePermissionController::class, 'update'])->name('settings.permissions.update')->middleware('permission:manage_permissions');
-
     // Profile & Password
     Route::get('/profile/password', [ProfileController::class, 'showPasswordForm'])->name('password.change');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update.profile');
